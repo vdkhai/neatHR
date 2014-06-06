@@ -1,5 +1,10 @@
-CMakeCache.txt
-CMakeFiles
-Makefile
-cmake_install.cmake
-install_manifest.txt
+/bootstrap/compiled.php
+/public/assets/compiled/*
+/vendor
+composer.phar
+composer.lock
+.DS_Store
+Thumbs.db
+
+# PHPStorm
+.idea

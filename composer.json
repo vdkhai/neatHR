@@ -1,0 +1,56 @@
+{
+	"name": "bngnha/neatHR",
+	"description": "The Neat HR Management System base in Laravel 4 and Bootstrap 3.",
+	"keywords": ["framework", "laravel"],
+	"license": "MIT",
+	"require": {
+		"laravel/framework": "4.1.*",
+		"twbs/bootstrap":  "3.0.0",
+		"etrepat/basset": "dev-master",
+		"zizaco/confide": "3.2.x",
+		"zizaco/entrust": "dev-master",
+		"bllim/datatables": "*",
+		"intervention/image": "2.*",
+		"intervention/imagecache": "2.*"
+	},
+	"require-dev": {
+		"way/generators": "dev-master",
+		"mockery/mockery": "dev-master@dev",
+		"summerstreet/woodling": "0.1.*",
+		"barryvdh/laravel-ide-helper": "dev-master",
+		"leafo/lessphp": "v0.4.0",
+		"natxet/CssMin": "dev-master",
+		"lmammino/jsmin4assetic": "1.0.*"
+	},
+	"autoload": {
+		"classmap": [
+			"app/commands",
+			"app/controllers",
+			"app/models",
+			"app/database/migrations",
+			"app/database/seeds",
+			"app/tests/TestCase.php"
+		]
+	},
+	"scripts": {
+		"pre-install-cmd": [
+			"php artisan clear-compiled"
+		],
+		"post-install-cmd": [
+			"php artisan optimize"
+		],
+		"pre-update-cmd": [
+			"php artisan clear-compiled"
+		],
+		"post-update-cmd": [
+			"php artisan optimize"
+		],
+		"post-create-project-cmd": [
+			"php artisan key:generate"
+		]
+	},
+	"config": {
+		"preferred-install": "dist"
+	},
+	"minimum-stability": "dev"
+}
