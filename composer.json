@@ -1,6 +1,6 @@
 {
 	"name": "bngnha/neatHR",
-	"description": "The Neat HR Management System base in Laravel 4 and Bootstrap 3.",
+	"description": "The Neat HR Management System base on Laravel 4 and Bootstrap 3.",
 	"keywords": ["framework", "laravel"],
 	"license": "MIT",
 	"require": {
