@@ -1,4 +1,4 @@
-<form id="skill" name="skill" class="form-horizontal" method="post" action="@if (isset($skill)){{ URL::to('admin/skills/' . $skill->id . '/edit') }} @else {{ URL::to('admin/skills/create') }} @endif " autocomplete="off">
+<form id="employeeskill" name="employeeskill" class="form-horizontal" method="post" action="@if (isset($employeeskill)){{ URL::to('admin/employeeskills/' . $employee->id . '/edit/' . $employeeskill->id) }} @else {{ URL::to('admin/employeeskills/' . $employee->id . '/create') }} @endif " autocomplete="off">
 	<input type="hidden" name="_token" value="{{{ csrf_token() }}}" />
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -6,28 +6,37 @@
 	</div>
 	<div class="modal-body">
 		<div class="" id="notifyDiv"></div>
+
 		<div class="form-group">
-			<label class="col-md-2 control-label" for="name">{{{ Lang::get('form.name') }}}</label>
-			<div class="col-md-10">
-				<input class="form-control" type="text" name="name" id="name" value="{{{ Input::old('name', isset($skill) ? $skill->name : null) }}}" />
-				<span class="has-error" id="error-name"></span>
+			<label class="col-md-3 control-label" for="skill_id">Skills</label>
+			<div class="col-md-9">
+				{{ Form::select('skill_id', $skills, Input::old('skill_id'), array('id' => 'skill_id', 'class' => 'form-control')) }}
+				<span class="has-error" id="error-skill_id"></span>
 			</div>
 		</div>
 
 		<div class="form-group">
-			<label class="col-md-2 control-label" for="description">{{{ Lang::get('form.desc') }}}</label>
-			<div class="col-md-10">
-				<textarea class="form-control" rows="3" name="description" id="description">{{{ Input::old('description', isset($skill) ? $skill->description : null) }}}</textarea>
-				<span class="has-error" id="error-description"></span>
+			<label class="col-md-3 control-label" for="year_of_exp">Year of experience</label>
+			<div class="col-md-9">
+				<input class="form-control" type="text" name="year_of_exp" id="year_of_exp" value="{{{ Input::old('year_of_exp', isset($employeeskill) ? $employeeskill->year_of_exp : null) }}}" />
+				<span class="has-error" id="error-year_of_exp"></span>
 			</div>
 		</div>
 
 		<div class="form-group">
-			<label class="col-md-2 control-label" for="confirm">{{{ Lang::get('form.published') }}}</label>
-			<div class="col-md-10">
+			<label class="col-md-3 control-label" for="note">Note</label>
+			<div class="col-md-9">
+				<textarea class="form-control" rows="3" name="note" id="note">{{{ Input::old('note', isset($employeeskill) ? $employeeskill->note : null) }}}</textarea>
+				<span class="has-error" id="error-note"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="confirm">{{{ Lang::get('form.published') }}}</label>
+			<div class="col-md-9">
 				<select class="form-control" name="published" id="published">
-					<option value="1"{{{ (Input::old('published', isset($skill) ? $skill->published : 1) === 1 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.yes') }}}</option>
-					<option value="0"{{{ (Input::old('published', isset($skill) ? $skill->published : 1) === 0 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.no') }}}</option>
+					<option value="1"{{{ (Input::old('published', isset($employeeskill) ? $employeeskill->published : 1) === 1 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.yes') }}}</option>
+					<option value="0"{{{ (Input::old('published', isset($employeeskill) ? $employeeskill->published : 1) === 0 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.no') }}}</option>
 				</select>
 			</div>
 		</div>
@@ -42,9 +51,9 @@
 <script type="text/javascript">
 	var reload = false;
 	@if ($mode == 'create')
-		var url = '{{ URL::to("admin/skills/create") }}';
+		var url = '{{ URL::to("admin/employeeskills/" . $employee->id . "/create") }}';
 	@else
-	var url = '{{ URL::to("admin/skills/" . $skill->id . "/edit") }}';
+	var url = '{{ URL::to("admin/employeeskills/" . $employee->id . "/edit/" . $employeeskill->id) }}';
 	@endif
 	$(document).ready(function() {
 		$('#resetId').click(function(e){
@@ -54,7 +63,7 @@
 			$('#notifyDiv').removeClass('alert').removeClass('alert-success').removeClass('alert-danger').html('');
 
 			// Reset form data
-			$('form#skill')[0].reset();
+			$('form#employeeskill')[0].reset();
 			$(this).closest('form').find('span').each(function(){
 				if($(this).hasClass('has-error'))
 					$(this).html('');
@@ -68,7 +77,7 @@
 			$('#notifyDiv').removeClass('alert').removeClass('alert-success').removeClass('alert-danger').html('');
 
 			// Reset from data
-			var form = $('form#skill');
+			var form = $('form#employeeskill');
 			var data = $(form).serialize();
 			$(form.find('span')).each(function(){
 				if($(this).hasClass('has-error'))

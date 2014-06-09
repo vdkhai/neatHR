@@ -35,18 +35,20 @@ class AdminEmployeeDependentsController extends AdminController
      */
     public function getCreate($employee)
     {
-		// Title
-		$title = Lang::get('admin/employeedependents/title.employeedependent_create');
+	    // Title
+	    $title = Lang::get('admin/employeedependents/title.employeedependent_create');
 
 	    $user = $this->user->currentUser();
 
 	    $dependents = Dependent::lists('name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/employeedependents/create_edit', compact('user', 'employee', 'dependents', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employeedependents/create_edit', compact('user', 'employee', 'dependents', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -56,33 +58,31 @@ class AdminEmployeeDependentsController extends AdminController
      */
     public function postCreate($employee)
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
 	    if ($validator->passes())
 	    {
+		    $result['failedValidate'] = false;
+
 		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
 		    $this->employeedependent->fill(Input::all())->save();
 
 		    if( $this->employeedependent->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employeedependents/' . $employee->id . '/edit/' . $this->employeedependent->id)->with('success', Lang::get('admin/employeedependents/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employeedependent->errors()->all();
-	            //return Redirect::to('admin/employeedependents/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeedependents/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeedependents/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employeedependents/' . $employee->id . '/create')->with('error', Lang::get('admin/employeedependents/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -94,25 +94,28 @@ class AdminEmployeeDependentsController extends AdminController
      */
     public function getEdit($employee, $employeedependent)
     {
-        if ($employeedependent->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($employeedependent->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/employeedependents/title.employeedependent_update');
+		    // Title
+		    $title = Lang::get('admin/employeedependents/title.employeedependent_update');
 
-	        $dependents = Dependent::lists('name', 'id');
+		    $dependents = Dependent::lists('name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/employeedependents/create_edit',
-		        compact('employee', 'employeedependent', 'user', 'dependents', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employeedependents/' . $employee->id . '/show')->with('error', Lang::get('admin/employeedependents/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/employeedependents/create_edit',
+			    compact('employee', 'employeedependent', 'dependents', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employeedependents/' . $employee->id . '/show')->with('error', Lang::get('admin/employeedependents/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -123,24 +126,32 @@ class AdminEmployeeDependentsController extends AdminController
      */
     public function postEdit($employee, $employeedependent)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
 
-        if ($validator->passes())
-        {
-	        Input::merge(array('employee_id' => $employee->id));
+		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
-	        $employeedependent->fill(Input::all())->save();
+		    $employeedependent->fill(Input::all())->save();
 
-			// Redirect to the new user page
-	        return Redirect::to('admin/employeedependents/' . $employee->id . '/edit/' . $employeedependent->id)->with('success', Lang::get('admin/employeedependents/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employeedependents/' . $employee->id . '/edit/' . $employeedependent->id)->with('error', Lang::get('admin/employeedependents/messages.edit.error'));
-        }
+		    if( $employeedependent->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeedependents/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeedependents/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -151,32 +162,18 @@ class AdminEmployeeDependentsController extends AdminController
      */
     public function getDelete($employee, $employeedependent)
     {
-        // Title
-        $title = Lang::get('admin/employeedependents/title.employeedependent_delete');
-
-        // Show the page
-        return View::make('admin/employeedependents/delete', compact('employee', 'employeedependent', 'title'));
-    }
-
-    /**
-     * Remove the specified employeedependent from storage.
-     *
-     * @param $employeedependent
-     * @return Response
-     */
-    public function postDelete($employee, $employeedependent)
-    {
 	    $employeedependent->delete();
 
-        if (!empty($employeedependent) )
-        {
-            return Redirect::to('admin/employeedependents/' . $employee->id . '/show')->with('success', Lang::get('admin/employeedependents/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employeedependents/' . $employee->id . '/show')->with('error', Lang::get('admin/employeedependents/messages.delete.error'));
-        }
+	    if (!empty($employeedependent) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employeedependents/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employeedependents/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -207,8 +204,14 @@ class AdminEmployeeDependentsController extends AdminController
 	        ->where('employee_id', '=', $employee->id);
 
         return Datatables::of($employeeDependents)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employeedependents/\' . $employee_id . \'/edit/\' . $id ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employeedependents/\' . $employee_id . \'/delete/\' .$id ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employeedependents/\' . $employee_id . \'/edit/\'. $id ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employeedependents/\' . $employee_id . \'/delete/\'. $id ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id', 'employee_id')
                 ->make();
     }

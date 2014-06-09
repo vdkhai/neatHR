@@ -48,16 +48,18 @@ class AdminSkillsController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/skills/title.skill_create');
+	    // Title
+	    $title = Lang::get('admin/skills/title.skill_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/skills/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/skills/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,30 +69,28 @@ class AdminSkillsController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required', 'description' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        // Save if valid. We can use fill method to bind data from to form into model
-	        $this->skill->fill(Input::all())->save();
+		    $result['failedValidate'] = false;
+		    $this->skill->fill(Input::all())->save();
 
-	        if( $this->skill->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/skills/' . $this->skill->id . '/edit')->with('success', Lang::get('admin/skills/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->skill->errors()->all();
-	            //return Redirect::to('admin/skills/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->skill->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/skills/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/skills/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-			return Redirect::to('admin/skills/create')->withErrors($validator);
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -102,21 +102,25 @@ class AdminSkillsController extends AdminController
      */
     public function getEdit($skill)
     {
-        if ($skill->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($skill->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/skills/title.skill_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/skills/title.skill_update');
 
-        	return View::make('admin/skills/create_edit', compact('skill', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/skills')->with('error', Lang::get('admin/skills/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/skills/create_edit', compact('skill', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/skills')->with('error', Lang::get('admin/skills/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -127,26 +131,29 @@ class AdminSkillsController extends AdminController
      */
     public function postEdit($skill)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $skill->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $skill->name = Input::get( 'name' );
-	        $skill->description = Input::get( 'description' );
-	        $skill->published = Input::get( 'published' );
-
-            // Save if valid
-	        $skill->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/skills/' . $skill->id . '/edit')->with('success', Lang::get('admin/skills/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/skills/' . $skill->id . '/edit')->with('error', Lang::get('admin/skills/messages.edit.error'));
-        }
+		    if( $skill->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/skills/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/skills/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -157,32 +164,18 @@ class AdminSkillsController extends AdminController
      */
     public function getDelete($skill)
     {
-        // Title
-        $title = Lang::get('admin/skills/title.skill_delete');
-
-        // Show the page
-        return View::make('admin/skills/delete', compact('skill', 'title'));
-    }
-
-    /**
-     * Remove the specified skill from storage.
-     *
-     * @param $skill
-     * @return Response
-     */
-    public function postDelete($skill)
-    {
 	    $skill->delete();
 
-        if (!empty($skill) )
-        {
-            return Redirect::to('admin/skills')->with('success', Lang::get('admin/skills/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/skills')->with('error', Lang::get('admin/skills/messages.delete.error'));
-        }
+	    if (!empty($skill) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/skills/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/skills/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -206,8 +199,14 @@ class AdminSkillsController extends AdminController
         $skills = Skill::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($skills)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/skills/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/skills/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/skills/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/skills/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

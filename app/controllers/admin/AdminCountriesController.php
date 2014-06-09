@@ -56,8 +56,10 @@ class AdminCountriesController extends AdminController
 		// Mode
 		$mode = 'create';
 
-		// Show the page
-		return View::make('admin/countries/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/countries/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,37 +69,28 @@ class AdminCountriesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'iso_code_2' => 'required|min:2|max:2', 'iso_code_3' => 'required|min:3|max:3'));
 	    if ($validator->passes())
 	    {
-	        $this->country->name = Input::get( 'name' );
-	        $this->country->iso_code_2 = Input::get( 'iso_code_2' );
-	        $this->country->iso_code_3 = Input::get( 'iso_code_3' );
-	        $this->country->address_format = Input::get( 'address_format' );
-	        $this->country->postcode_required = Input::get( 'postcode_required' );
+		    $result['failedValidate'] = false;
+		    $this->country->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->country->save();
-
-	        if( $this->country->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/countries/' . $this->country->id . '/edit')->with('success', Lang::get('admin/countries/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->country->errors()->all();
-	            //return Redirect::to('admin/countries/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->country->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/countries/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/countries/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/countries/create')->with('error', Lang::get('admin/countries/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -109,21 +102,25 @@ class AdminCountriesController extends AdminController
      */
     public function getEdit($country)
     {
-        if ($country->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($country->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/countries/title.country_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/countries/title.country_update');
 
-        	return View::make('admin/countries/create_edit', compact('country', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/countries')->with('error', Lang::get('admin/countries/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/countries/create_edit', compact('country', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/countries')->with('error', Lang::get('admin/countries/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -134,28 +131,29 @@ class AdminCountriesController extends AdminController
      */
     public function postEdit($country)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'iso_code_2' => 'required|min:2|max:2', 'iso_code_3' => 'required|min:3|max:3'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $country->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $country->name = Input::get( 'name' );
-	        $country->iso_code_2 = Input::get( 'iso_code_2' );
-	        $country->iso_code_3 = Input::get( 'iso_code_3' );
-	        $country->address_format = Input::get( 'address_format' );
-	        $country->postcode_required = Input::get( 'postcode_required' );
-
-            // Save if valid
-	        $country->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/countries/' . $country->id . '/edit')->with('success', Lang::get('admin/countries/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/countries/' . $country->id . '/edit')->with('error', Lang::get('admin/countries/messages.edit.error'));
-        }
+		    if( $country->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/countries/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/countries/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -166,32 +164,18 @@ class AdminCountriesController extends AdminController
      */
     public function getDelete($country)
     {
-        // Title
-        $title = Lang::get('admin/countries/title.country_delete');
-
-        // Show the page
-        return View::make('admin/countries/delete', compact('country', 'title'));
-    }
-
-    /**
-     * Remove the specified country from storage.
-     *
-     * @param $country
-     * @return Response
-     */
-    public function postDelete($country)
-    {
 	    $country->delete();
 
-        if (!empty($country) )
-        {
-            return Redirect::to('admin/countries')->with('success', Lang::get('admin/countries/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/countries')->with('error', Lang::get('admin/countries/messages.delete.error'));
-        }
+	    if (!empty($country) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/countries/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/countries/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -215,8 +199,14 @@ class AdminCountriesController extends AdminController
         $countries = Country::select(array('published', 'id', 'name', 'iso_code_2', 'iso_code_3'));
 
         return Datatables::of($countries)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/countries/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/countries/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+												<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+												<ul class="dropdown-menu" role="menu">
+													<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/countries/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+													<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/countries/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+												</ul>
+											</div>'
+		        )
                 ->remove_column('id')
                 ->make();
     }

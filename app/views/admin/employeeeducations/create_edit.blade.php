@@ -1,113 +1,148 @@
-@extends('admin.layouts.modal')
+<form id="employeeeducation" name="employeeeducation" class="form-horizontal" method="post" action="@if (isset($employeeeducation)){{ URL::to('admin/employeeeducations/' . $employee->id . '/edit/' . $employeeeducation->id) }} @else {{ URL::to('admin/employeeeducations/' . $employee->id . '/create') }} @endif " autocomplete="off">
+	<input type="hidden" name="_token" value="{{{ csrf_token() }}}" />
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title" id="modalLabel">{{{ $title }}}</h4>
+	</div>
+	<div class="modal-body">
+		<div class="" id="notifyDiv"></div>
 
-{{-- Content --}}
-@section('content')
-	<!-- Tabs -->
-		<ul class="nav nav-tabs">
-			<li class="active"><a href="#tab-general" data-toggle="tab">General</a></li>
-		</ul>
-	<!-- ./ tabs -->
-
-	<form class="form-horizontal" method="post" action="@if (isset($employeeeducation)){{ URL::to('admin/employeeeducations/' . $employee->id . '/edit/' . $employeeeducation->id) }}@else {{URL::to('admin/employeeeducations/' . $employee->id . '/create')}} @endif" autocomplete="off">
-		<!-- CSRF Token -->
-		<input type="hidden" name="_token" value="{{{ csrf_token() }}}" />
-		<!-- ./ csrf token -->
-
-		<!-- Tabs Content -->
-		<div class="tab-content">
-			<!-- General tab -->
-			<div class="tab-pane active" id="tab-general">
-				<!-- employeeeducations.education_id -->
-				<div class="form-group {{{ $errors->has('education_id') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="education_id">Education</label>
-					<div class="col-md-6">
-						{{ Form::select('education_id', $educations, Input::old('education_id'), array('id' => 'education_id', 'class' => 'form-control')) }}
-						{{{ $errors->first('education_id', '<span class="help-inline">:message</span>') }}}
-					</div>
-				</div>
-				<!-- ./ employeeeducations.education_id -->
-
-				<!-- employeeeducations.institute -->
-				<div class="form-group {{{ $errors->has('institute') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="institute">Institute</label>
-					<div class="col-md-6">
-						<input class="form-control" type="text" name="institute" id="institute" value="{{{ Input::old('institute', isset($employeeeducation) ? $employeeeducation->institute : null) }}}" />
-						{{{ $errors->first('institute', '<span class="help-inline">:message</span>') }}}
-					</div>
-				</div>
-				<!-- ./ employeeeducations.institute -->
-
-				<!-- employeeeducations.start_date -->
-				<div class="form-group {{{ $errors->has('start_date') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="start_date">Start Date</label>
-					<div class="col-md-6 input-append date datefield" id="start_date" data-date-viewmode="years" data-date-format="dd-mm-yyyy" data-date="12-02-2012">
-						<input class="start_date" type="text" value="{{{ Input::old('start_date', isset($employeeeducation) ? $employeeeducation->start_date : null) }}}" name="start_date" id="start_date" readonly="readonly">
-						<span class="add-on"><i class="icon-th"></i></span>
-					</div>
-				</div>
-				<!-- ./ employeeeducations.start_date -->
-
-				<!-- employeeeducations.end_date -->
-				<div class="form-group {{{ $errors->has('end_date') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="end_date">End Date</label>
-					<div class="col-md-6 input-append date datefield" id="start_date" data-date-viewmode="years" data-date-format="dd-mm-yyyy" data-date="12-02-2012">
-						<input class="end_date" type="text" value="{{{ Input::old('end_date', isset($employeeeducation) ? $employeeeducation->end_date : null) }}}" name="end_date" id="end_date" readonly="readonly">
-						<span class="add-on"><i class="icon-th"></i></span>
-					</div>
-				</div>
-				<!-- ./ employeeeducations.end_date -->
-
-				<!-- employeeeducations.note -->
-				<div class="form-group {{{ $errors->has('note') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="note">Note</label>
-					<div class="col-md-6">
-						<textarea class="form-control" rows="3" name="note" id="note">{{{ Input::old('note', isset($employeeeducation) ? $employeeeducation->note : null) }}}</textarea>
-						{{{ $errors->first('note', '<span class="help-inline">:message</span>') }}}
-					</div>
-				</div>
-				<!-- ./ employeeeducations.note -->
-
-				<!-- Activation Status -->
-				<div class="form-group {{{ $errors->has('published') || $errors->has('published') ? 'error' : '' }}}">
-					<label class="col-md-2 control-label" for="confirm">Published</label>
-					<div class="col-md-6">
-						@if ($mode == 'create')
-						<select class="form-control" name="published" id="published">
-							<option value="1"{{{ (Input::old('published', 0) === 1 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.yes') }}}</option>
-							<option value="0"{{{ (Input::old('published', 0) === 0 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.no') }}}</option>
-						</select>
-						@else
-						<select class="form-control" name="published" id="published">
-							<option value="1"{{{ (Input::old('published', 0) === 1 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.yes') }}}</option>
-							<option value="0"{{{ (Input::old('published', 0) === 0 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.no') }}}</option>
-						</select>
-						@endif
-						{{{ $errors->first('published', '<span class="help-inline">:message</span>') }}}
-					</div>
-				</div>
-				<!-- ./ activation status -->
-			</div>
-			<!-- ./ general tab -->
-		</div>
-		<!-- ./ tabs content -->
-
-		<!-- Form Actions -->
 		<div class="form-group">
-			<div class="col-md-offset-2 col-md-6">
-				<element class="btn btn-info close_popup">Cancel</element>
-				<button type="reset" class="btn btn-primary">Reset</button>
-				<button type="submit" class="btn btn-success">OK</button>
+			<label class="col-md-3 control-label" for="education_id">Education</label>
+			<div class="col-md-9">
+				{{ Form::select('education_id', $educations, Input::old('education_id'), array('id' => 'education_id', 'class' => 'form-control')) }}
+				<span class="has-error" id="error-education_id"></span>
 			</div>
 		</div>
-		<!-- ./ form actions -->
-	</form>
-@stop
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="institute">Institute</label>
+			<div class="col-md-9">
+				<input class="form-control" type="text" name="institute" id="institute" value="{{{ Input::old('institute', isset($employeeeducation) ? $employeeeducation->institute : null) }}}" />
+				<span class="has-error" id="error-institute"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="start_date">Start Date</label>
+			<div class="col-md-5 input-group input-append">
+				<input class="form-control start_date datefield" id="start_date" name="start_date" data-date-viewmode="years" data-date-format="yyyy-mm-dd"
+					type="text" value="{{{ Input::old('start_date', isset($employeeeducation) ? $employeeeducation->start_date : '') }}}">
+				<span class="input-group-addon date "><span class="glyphicon glyphicon-calendar"></span></span>
+				<span class="has-error" id="error-start_date"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="end_date">End Date</label>
+			<div class="col-md-5 input-group input-append">
+				<input class="form-control end_date datefield" id="end_date" name="end_date" data-date-viewmode="years" data-date-format="yyyy-mm-dd"
+					type="text" value="{{{ Input::old('end_date', isset($employeeeducation) ? $employeeeducation->end_date : '') }}}">
+				<span class="input-group-addon date "><span class="glyphicon glyphicon-calendar"></span></span>
+				<span class="has-error" id="error-end_date"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="note">Note</label>
+			<div class="col-md-9">
+				<textarea class="form-control" rows="3" name="note" id="note">{{{ Input::old('note', isset($employeeeducation) ? $employeeeducation->note : null) }}}</textarea>
+				<span class="has-error" id="error-note"></span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-md-3 control-label" for="confirm">{{{ Lang::get('form.published') }}}</label>
+			<div class="col-md-9">
+				<select class="form-control" name="published" id="published">
+					<option value="1"{{{ (Input::old('published', isset($employeeeducation) ? $employeeeducation->published : 1) === 1 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.yes') }}}</option>
+					<option value="0"{{{ (Input::old('published', isset($employeeeducation) ? $employeeeducation->published : 1) === 0 ? ' selected="selected"' : '') }}}>{{{ Lang::get('general.no') }}}</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">{{{ Lang::get('button.close') }}}</button>
+		<button type="button" class="btn btn-primary" id="resetId">{{{ Lang::get('button.reset') }}}</button>
+		<button type="button" class="btn btn-primary" id="saveId">{{{ Lang::get('button.save') }}}</button>
+	</div>
+</form>
 @section('scripts')
 <script type="text/javascript">
-	//$('#start_date').datepicker() // In case recompiled bootstrap
-	$('.start_date').datepicker(); // Template
+	var reload = false;
+	@if ($mode == 'create')
+		var url = '{{ URL::to("admin/employeeeducations/" . $employee->id . "/create") }}';
+	@else
+	var url = '{{ URL::to("admin/employeeeducations/" . $employee->id . "/edit/" . $employeeeducation->id) }}';
+	@endif
+	$(document).ready(function() {
+		$('#resetId').click(function(e){
+			e.preventDefault();
 
-	//$('#end_date').datepicker() // In case recompiled bootstrap
-	$('.end_date').datepicker(); // Template
+			// Reset notify message
+			$('#notifyDiv').removeClass('alert').removeClass('alert-success').removeClass('alert-danger').html('');
+
+			// Reset form data
+			$('form#employeeeducation')[0].reset();
+			$(this).closest('form').find('span').each(function(){
+				if($(this).hasClass('has-error'))
+					$(this).html('');
+			});
+		});
+
+		$('#saveId').click(function(e){
+			e.preventDefault();
+
+			// Reset notify message
+			$('#notifyDiv').removeClass('alert').removeClass('alert-success').removeClass('alert-danger').html('');
+
+			// Reset from data
+			var form = $('form#employeeeducation');
+			var data = $(form).serialize();
+			$(form.find('span')).each(function(){
+				if($(this).hasClass('has-error'))
+					$(this).html('');
+			});
+
+			$.ajax({
+				url: url,
+				data: data,
+				dataType: 'json',
+				method: 'POST',
+				success: function(returnData) {
+					var returnObj = $.parseJSON(returnData);
+					if(returnObj.failedValidate){
+						$($.parseJSON(returnObj.messages)).each(function(i, val){
+							$.each(val, function(k, v){
+								$('#error-'+k).html(v);
+							});
+						});
+					}else{
+						$(returnObj.messages).each(function(i, val){
+							$.each(val, function(k, v){
+								if(k == 'success'){
+									$('#notifyDiv').html(v + '<a class="close" data-dismiss="alert" href="#">&times;</a>').addClass('alert').addClass('alert-success');
+									reload = true;
+								} else {
+									$('#notifyDiv').html(v + '<a class="close" data-dismiss="alert" href="#">&times;</a>').addClass('alert').addClass('alert-danger');
+								}
+
+							});
+						});
+
+						if(reload == true){
+							parent.oTable.fnReloadAjax();
+						}
+					}
+				},
+				error: function(){
+					$('#notifyDiv').html('Save fail<a class="close" data-dismiss="alert" href="#">&times;</a>').addClass('alert').addClass('alert-danger');
+				}
+			});
+		});
+	});
+
+	$('#start_date').datepicker();
+	$('#end_date').datepicker();
 </script>
-@stop
+@section('scripts')

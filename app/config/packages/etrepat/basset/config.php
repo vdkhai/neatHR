@@ -50,6 +50,7 @@ return array(
 			$collection->directory('assets/css', function($collection)
 			{
 				//$collection->add('less/master.less')->apply('Less');
+				$collection->add('less/template.less')->apply('Less');
 				$collection->add('bootstrap.css');
 
 				$collection->add('wysihtml5/prettify.css');

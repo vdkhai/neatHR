@@ -48,16 +48,18 @@ class AdminRecruitmentStatusController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/recruitmentstatus/title.recruitmentstatus_create');
+	    // Title
+	    $title = Lang::get('admin/recruitmentstatus/title.recruitmentstatus_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/recruitmentstatus/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/recruitmentstatus/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,35 +69,28 @@ class AdminRecruitmentStatusController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->recruitmentstatus->name = Input::get( 'name' );
-		    $this->recruitmentstatus->description = Input::get( 'description' );
-	        $this->recruitmentstatus->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->recruitmentstatus->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->recruitmentstatus->save();
-
-	        if( $this->recruitmentstatus->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/recruitmentstatus/' . $this->recruitmentstatus->id . '/edit')->with('success', Lang::get('admin/recruitmentstatus/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->recruitmentstatus->errors()->all();
-	            //return Redirect::to('admin/recruitmentstatus/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->recruitmentstatus->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/recruitmentstatus/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/recruitmentstatus/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/recruitmentstatus/create')->with('error', Lang::get('admin/recruitmentstatus/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,21 +102,25 @@ class AdminRecruitmentStatusController extends AdminController
      */
     public function getEdit($recruitmentstatus)
     {
-        if ($recruitmentstatus->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($recruitmentstatus->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/recruitmentstatus/title.recruitmentstatus_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/recruitmentstatus/title.recruitmentstatus_update');
 
-        	return View::make('admin/recruitmentstatus/create_edit', compact('recruitmentstatus', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/recruitmentstatus')->with('error', Lang::get('admin/recruitmentstatus/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/recruitmentstatus/create_edit', compact('recruitmentstatus', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/recruitmentstatus')->with('error', Lang::get('admin/recruitmentstatus/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -132,26 +131,29 @@ class AdminRecruitmentStatusController extends AdminController
      */
     public function postEdit($recruitmentstatus)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $recruitmentstatus->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $recruitmentstatus->name = Input::get( 'name' );
-	        $recruitmentstatus->description = Input::get( 'description' );
-	        $recruitmentstatus->published = Input::get( 'published' );
-
-            // Save if valid
-	        $recruitmentstatus->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/recruitmentstatus/' . $recruitmentstatus->id . '/edit')->with('success', Lang::get('admin/recruitmentstatus/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/recruitmentstatus/' . $recruitmentstatus->id . '/edit')->with('error', Lang::get('admin/recruitmentstatus/messages.edit.error'));
-        }
+		    if( $recruitmentstatus->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/recruitmentstatus/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/recruitmentstatus/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -162,32 +164,18 @@ class AdminRecruitmentStatusController extends AdminController
      */
     public function getDelete($recruitmentstatus)
     {
-        // Title
-        $title = Lang::get('admin/recruitmentstatus/title.recruitmentstatus_delete');
-
-        // Show the page
-        return View::make('admin/recruitmentstatus/delete', compact('recruitmentstatus', 'title'));
-    }
-
-    /**
-     * Remove the specified recruitmentstatus from storage.
-     *
-     * @param $recruitmentstatus
-     * @return Response
-     */
-    public function postDelete($recruitmentstatus)
-    {
 	    $recruitmentstatus->delete();
 
-        if (!empty($recruitmentstatus) )
-        {
-            return Redirect::to('admin/recruitmentstatus')->with('success', Lang::get('admin/recruitmentstatus/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/recruitmentstatus')->with('error', Lang::get('admin/recruitmentstatus/messages.delete.error'));
-        }
+	    if (!empty($recruitmentstatus) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/recruitmentstatus/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/recruitmentstatus/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -211,8 +199,14 @@ class AdminRecruitmentStatusController extends AdminController
         $recruitmentStatus = RecruitmentStatus::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($recruitmentStatus)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/recruitmentstatus/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/recruitmentstatus/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+												<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+												<ul class="dropdown-menu" role="menu">
+													<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/recruitmentstatus/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+													<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/recruitmentstatus/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+												</ul>
+											</div>'
+		        )
                 ->remove_column('id')
                 ->make();
     }

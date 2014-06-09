@@ -1,7 +1,7 @@
 <?php
 
 return array(
-
-	'status' => 'Status',
-	'payfrequency_name'  => 'PayFrequency Name',
+	'paygrade_currency'  => 'Currency',
+	'paygrade_min'  => 'Minimum',
+	'paygrade_max'  => 'Maximum',
 );

@@ -48,8 +48,8 @@ class AdminRecruitVacanciesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/recruitvacancies/title.recruitvacancy_create');
+	    // Title
+	    $title = Lang::get('admin/recruitvacancies/title.recruitvacancy_create');
 
 	    $user = $this->user->currentUser();
 
@@ -57,11 +57,14 @@ class AdminRecruitVacanciesController extends AdminController
 
 	    $employees = Employee::lists('first_name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/recruitvacancies/create_edit', compact('user', 'jobtitles', 'employees', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/recruitvacancies/create_edit',
+		    compact('user', 'jobtitles', 'employees', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -75,27 +78,25 @@ class AdminRecruitVacanciesController extends AdminController
 	    $validator = Validator::make(Input::all(), array('name' => 'required'));
 	    if ($validator->passes())
 	    {
-	        // Save if valid.
-	        $this->recruitvacancy->fill(Input::all())->save();
+		    $result['failedValidate'] = false;
+		    $this->recruitvacancy->fill(Input::all())->save();
 
-	        if( $this->recruitvacancy->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/recruitvacancies/' . $this->recruitvacancy->id . '/edit')->with('success', Lang::get('admin/recruitvacancies/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->recruitvacancy->errors()->all();
-	            //return Redirect::to('admin/recruitvacancies/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->recruitvacancy->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/recruitvacancies/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/recruitvacancies/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/recruitvacancies/create')->with('error', Lang::get('admin/recruitvacancies/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,25 +108,30 @@ class AdminRecruitVacanciesController extends AdminController
      */
     public function getEdit($recruitvacancy)
     {
-        if ($recruitvacancy->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($recruitvacancy->id)
+	    {
+		    $user = $this->user->currentUser();
 
-	        $jobtitles = JobTitle::lists('name', 'id');
+		    $jobtitles = JobTitle::lists('name', 'id');
 
-	        $employees = Employee::lists('first_name', 'id');
+		    $employees = Employee::lists('first_name', 'id');
 
-            // Title
-        	$title = Lang::get('admin/recruitvacancies/title.recruitvacancy_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/recruitvacancies/title.recruitvacancy_update');
 
-        	return View::make('admin/recruitvacancies/create_edit', compact('recruitvacancy', 'user', 'jobtitles', 'employees', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/recruitvacancies')->with('error', Lang::get('admin/recruitvacancies/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/recruitvacancies/create_edit',
+			    compact('recruitvacancy', 'user', 'jobtitles', 'employees', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/recruitvacancies')->with('error', Lang::get('admin/recruitvacancies/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -138,20 +144,28 @@ class AdminRecruitVacanciesController extends AdminController
     {
         // Validate the inputs
         $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $recruitvacancy->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-            // Save if valid
-	        $recruitvacancy->fill(Input::all())->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/recruitvacancies/' . $recruitvacancy->id . '/edit')->with('success', Lang::get('admin/recruitvacancies/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/recruitvacancies/' . $recruitvacancy->id . '/edit')->with('error', Lang::get('admin/recruitvacancies/messages.edit.error'));
-        }
+		    if( $recruitvacancy->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/recruitvacancies/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/recruitvacancies/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -162,32 +176,18 @@ class AdminRecruitVacanciesController extends AdminController
      */
     public function getDelete($recruitvacancy)
     {
-        // Title
-        $title = Lang::get('admin/recruitvacancies/title.recruitvacancy_delete');
-
-        // Show the page
-        return View::make('admin/recruitvacancies/delete', compact('recruitvacancy', 'title'));
-    }
-
-    /**
-     * Remove the specified recruitvacancy from storage.
-     *
-     * @param $recruitvacancy
-     * @return Response
-     */
-    public function postDelete($recruitvacancy)
-    {
 	    $recruitvacancy->delete();
 
-        if (!empty($recruitvacancy) )
-        {
-            return Redirect::to('admin/recruitvacancies')->with('success', Lang::get('admin/recruitvacancies/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/recruitvacancies')->with('error', Lang::get('admin/recruitvacancies/messages.delete.error'));
-        }
+	    if (!empty($recruitvacancy) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/recruitvacancies/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/recruitvacancies/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -210,11 +210,17 @@ class AdminRecruitVacanciesController extends AdminController
     {
         $recruitVacancies = RecruitVacancy::leftjoin('job_titles AS jt', 'jt.id', '=', 'recruit_vacancies.job_title_id')
                             ->leftjoin('employees AS em', 'em.id', '=', 'recruit_vacancies.contact_person_id')
-	                        ->select(array('recruit_vacancies.id', 'recruit_vacancies.name', 'jt.name AS job_title', 'recruit_vacancies.amount', 'em.first_name', 'recruit_vacancies.published'));
+	                        ->select(array('recruit_vacancies.id', 'recruit_vacancies.published', 'recruit_vacancies.name', 'jt.name AS job_title', 'recruit_vacancies.amount', 'em.first_name'));
 
         return Datatables::of($recruitVacancies)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/recruitvacancies/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/recruitvacancies/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/recruitvacancies/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/recruitvacancies/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

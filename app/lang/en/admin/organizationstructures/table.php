@@ -1,7 +1,6 @@
 <?php
 
 return array(
-	'status' => 'Status',
 	'organizationstructure_title'  => 'Title',
 	'organizationstructure_desc'  => 'Description',
 	'organizationstructure_address'  => 'Address',

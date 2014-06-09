@@ -35,18 +35,20 @@ class AdminEmployeeCertificationsController extends AdminController
      */
     public function getCreate($employee)
     {
-		// Title
-		$title = Lang::get('admin/employeecertifications/title.employeecertification_create');
+	    // Title
+	    $title = Lang::get('admin/employeecertifications/title.employeecertification_create');
 
 	    $user = $this->user->currentUser();
 
 	    $certifications = Certification::lists('name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/employeecertifications/create_edit', compact('user', 'employee', 'certifications', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employeecertifications/create_edit', compact('user', 'employee', 'certifications', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -60,29 +62,28 @@ class AdminEmployeeCertificationsController extends AdminController
 	    $validator = Validator::make(Input::all(), array('certification_id' => 'required'));
 	    if ($validator->passes())
 	    {
+		    $result['failedValidate'] = false;
+
 		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
 		    $this->employeecertification->fill(Input::all())->save();
 
 		    if( $this->employeecertification->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employeecertifications/' . $employee->id . '/edit/' . $this->employeecertification->id)->with('success', Lang::get('admin/employeecertifications/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employeecertification->errors()->all();
-	            //return Redirect::to('admin/employeecertifications/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeecertifications/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeecertifications/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employeecertifications/' . $employee->id . '/create')->with('error', Lang::get('admin/employeecertifications/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -94,25 +95,28 @@ class AdminEmployeeCertificationsController extends AdminController
      */
     public function getEdit($employee, $employeecertification)
     {
-        if ($employeecertification->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($employeecertification->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/employeecertifications/title.employeecertification_update');
+		    // Title
+		    $title = Lang::get('admin/employeecertifications/title.employeecertification_update');
 
-	        $certifications = Certification::lists('name', 'id');
+		    $certifications = Certification::lists('name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/employeecertifications/create_edit',
-		        compact('employee', 'employeecertification', 'user', 'certifications', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employeecertifications/' . $employee->id . '/show')->with('error', Lang::get('admin/employeecertifications/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/employeecertifications/create_edit',
+			    compact('employee', 'employeecertification', 'certifications', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employeecertifications/' . $employee->id . '/show')->with('error', Lang::get('admin/employeecertifications/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -125,22 +129,31 @@ class AdminEmployeeCertificationsController extends AdminController
     {
         // Validate the inputs
         $validator = Validator::make(Input::all(), array('certification_id' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
 
-        if ($validator->passes())
-        {
-	        Input::merge(array('employee_id' => $employee->id));
+		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
-	        $employeecertification->fill(Input::all())->save();
+		    $employeecertification->fill(Input::all())->save();
 
-			// Redirect to the new user page
-	        return Redirect::to('admin/employeecertifications/' . $employee->id . '/edit/' . $employeecertification->id)->with('success', Lang::get('admin/employeecertifications/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employeecertifications/' . $employee->id . '/edit/' . $employeecertification->id)->with('error', Lang::get('admin/employeecertifications/messages.edit.error'));
-        }
+		    if( $employeecertification->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeecertifications/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeecertifications/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -151,32 +164,18 @@ class AdminEmployeeCertificationsController extends AdminController
      */
     public function getDelete($employee, $employeecertification)
     {
-        // Title
-        $title = Lang::get('admin/employeecertifications/title.employeecertification_delete');
-
-        // Show the page
-        return View::make('admin/employeecertifications/delete', compact('employee', 'employeecertification', 'title'));
-    }
-
-    /**
-     * Remove the specified employeecertification from storage.
-     *
-     * @param $employeecertification
-     * @return Response
-     */
-    public function postDelete($employee, $employeecertification)
-    {
 	    $employeecertification->delete();
 
-        if (!empty($employeecertification) )
-        {
-            return Redirect::to('admin/employeecertifications/' . $employee->id . '/show')->with('success', Lang::get('admin/employeecertifications/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employeecertifications/' . $employee->id . '/show')->with('error', Lang::get('admin/employeecertifications/messages.delete.error'));
-        }
+	    if (!empty($employeecertification) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employeecertifications/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employeecertifications/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -208,8 +207,14 @@ class AdminEmployeeCertificationsController extends AdminController
 	        ->where('employee_certifications.employee_id', '=', $employee->id);
 
         return Datatables::of($employeeCertifications)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employeecertifications/\' . $employee_id . \'/edit/\' . $id ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employeecertifications/\' . $employee_id . \'/delete/\' .$id ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employeecertifications/\' . $employee_id . \'/edit/\'. $id ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employeecertifications/\' . $employee_id . \'/delete/\'. $id ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id', 'employee_id')
                 ->make();
     }

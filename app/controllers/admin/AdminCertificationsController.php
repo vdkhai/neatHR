@@ -53,8 +53,11 @@ class AdminCertificationsController extends AdminController
 
 	    $user = $this->user->currentUser();
 
+	    // Mode
+	    $mode = 'create';
+
 	    // Show the page
-	    $view = View::make('admin/certifications/create', compact('user', 'title'));
+	    $view = View::make('admin/certifications/create_edit', compact('user', 'title', 'mode'));
 
 	    return Response::make($view);
     }
@@ -66,34 +69,28 @@ class AdminCertificationsController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        // Save if valid.
+		    $result['failedValidate'] = false;
 	        $this->certification->fill(Input::all())->save();
 
 	        if( $this->certification->id )
 	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/certifications/' . $this->certification->id . '/edit')->with('success', Lang::get('admin/certifications/messages.create.success'));
+		        $result['messages'] = array('success' => Lang::get('admin/certifications/messages.create.success'));
+		        return Response::json(json_encode($result));
 	        }
 	        else
 	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->certification->errors()->all();
-	            //return Redirect::to('admin/certifications/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
+		        $result['messages'] = array('error' => Lang::get('admin/certifications/messages.create.error'));
+		        return Response::json(json_encode($result));
 	        }
 	    }
 	    else
 	    {
-		    $input = Input::all();
-		    $input['openModal'] = true;
-			//return Redirect::to('admin/certifications/create')->withErrors($validator)->withInput($input);
-
-		    return Response::json(array('result' => $input));
+			$result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -111,10 +108,14 @@ class AdminCertificationsController extends AdminController
 
             // Title
         	$title = Lang::get('admin/certifications/title.certification_update');
+
         	// Mode
         	$mode = 'edit';
 
-        	return View::make('admin/certifications/create_edit', compact('certification', 'user', 'title', 'mode'));
+	        // Show the page
+	        $view = View::make('admin/certifications/create_edit', compact('certification', 'user', 'title', 'mode'));
+
+	        return Response::make($view);
         }
         else
         {
@@ -130,26 +131,29 @@ class AdminCertificationsController extends AdminController
      */
     public function postEdit($certification)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $certification->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $certification->name = Input::get( 'name' );
-	        $certification->description = Input::get( 'description' );
-	        $certification->published = Input::get( 'published' );
-
-            // Save if valid
-	        $certification->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/certifications/' . $certification->id . '/edit')->with('success', Lang::get('admin/certifications/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/certifications/' . $certification->id . '/edit')->with('error', Lang::get('admin/certifications/messages.edit.error'));
-        }
+		    if( $certification->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/certifications/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/certifications/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -160,32 +164,18 @@ class AdminCertificationsController extends AdminController
      */
     public function getDelete($certification)
     {
-        // Title
-        $title = Lang::get('admin/certifications/title.certification_delete');
-
-        // Show the page
-        return View::make('admin/certifications/delete', compact('certification', 'title'));
-    }
-
-    /**
-     * Remove the specified certification from storage.
-     *
-     * @param $certification
-     * @return Response
-     */
-    public function postDelete($certification)
-    {
 	    $certification->delete();
 
-        if (!empty($certification) )
-        {
-            return Redirect::to('admin/certifications')->with('success', Lang::get('admin/certifications/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/certifications')->with('error', Lang::get('admin/certifications/messages.delete.error'));
-        }
+	    if (!empty($certification) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/certifications/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/certifications/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -209,8 +199,14 @@ class AdminCertificationsController extends AdminController
         $certifications = Certification::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($certifications)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/certifications/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/certifications/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+                ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/certifications/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/certifications/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+							)
                 ->remove_column('id')
                 ->make();
     }

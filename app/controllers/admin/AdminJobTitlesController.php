@@ -48,16 +48,18 @@ class AdminJobTitlesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/jobtitles/title.jobtitle_create');
+	    // Title
+	    $title = Lang::get('admin/jobtitles/title.jobtitle_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/jobtitles/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/jobtitles/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -68,36 +70,28 @@ class AdminJobTitlesController extends AdminController
     public function postCreate()
     {
 	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('code' => 'required', 'name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('code' => 'required|min:3', 'name' => 'required'));
 	    if ($validator->passes())
 	    {
-		    $this->jobtitle->code = Input::get( 'code' );
-	        $this->jobtitle->name = Input::get( 'name' );
-		    $this->jobtitle->description = Input::get( 'description' );
-		    $this->jobtitle->specification = Input::get( 'specification' );
-	        $this->jobtitle->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->jobtitle->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->jobtitle->save();
-
-	        if( $this->jobtitle->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/jobtitles/' . $this->jobtitle->id . '/edit')->with('success', Lang::get('admin/jobtitles/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->jobtitle->errors()->all();
-	            //return Redirect::to('admin/jobtitles/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->jobtitle->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/jobtitles/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/jobtitles/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/jobtitles/create')->with('error', Lang::get('admin/jobtitles/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -109,21 +103,25 @@ class AdminJobTitlesController extends AdminController
      */
     public function getEdit($jobtitle)
     {
-        if ($jobtitle->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($jobtitle->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/jobtitles/title.jobtitle_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/jobtitles/title.jobtitle_update');
 
-        	return View::make('admin/jobtitles/create_edit', compact('jobtitle', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/jobtitles')->with('error', Lang::get('admin/jobtitles/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/jobtitles/create_edit', compact('jobtitle', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/jobtitles')->with('error', Lang::get('admin/jobtitles/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -135,27 +133,29 @@ class AdminJobTitlesController extends AdminController
     public function postEdit($jobtitle)
     {
         // Validate the inputs
-        $validator = Validator::make(Input::all(), array('code' => 'required', 'name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('code' => 'required|min:3', 'name' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $jobtitle->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $jobtitle->code = Input::get( 'code' );
-	        $jobtitle->name = Input::get( 'name' );
-	        $jobtitle->description = Input::get( 'description' );
-	        $jobtitle->specification = Input::get( 'specification' );
-	        $jobtitle->published = Input::get( 'published' );
-
-            // Save if valid
-	        $jobtitle->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/jobtitles/' . $jobtitle->id . '/edit')->with('success', Lang::get('admin/jobtitles/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/jobtitles/' . $jobtitle->id . '/edit')->with('error', Lang::get('admin/jobtitles/messages.edit.error'));
-        }
+		    if( $jobtitle->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/jobtitles/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/jobtitles/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -166,32 +166,18 @@ class AdminJobTitlesController extends AdminController
      */
     public function getDelete($jobtitle)
     {
-        // Title
-        $title = Lang::get('admin/jobtitles/title.jobtitle_delete');
-
-        // Show the page
-        return View::make('admin/jobtitles/delete', compact('jobtitle', 'title'));
-    }
-
-    /**
-     * Remove the specified jobtitle from storage.
-     *
-     * @param $jobtitle
-     * @return Response
-     */
-    public function postDelete($jobtitle)
-    {
 	    $jobtitle->delete();
 
-        if (!empty($jobtitle) )
-        {
-            return Redirect::to('admin/jobtitles')->with('success', Lang::get('admin/jobtitles/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/jobtitles')->with('error', Lang::get('admin/jobtitles/messages.delete.error'));
-        }
+	    if (!empty($jobtitle) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/jobtitles/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/jobtitles/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -215,8 +201,14 @@ class AdminJobTitlesController extends AdminController
         $jobtitles = JobTitle::select(array('published', 'id', 'code', 'name', 'description', 'specification'));
 
         return Datatables::of($jobtitles)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/jobtitles/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/jobtitles/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/jobtitles/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/jobtitles/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

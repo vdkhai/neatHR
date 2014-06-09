@@ -48,16 +48,18 @@ class AdminLanguagesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/languages/title.language_create');
+	    // Title
+	    $title = Lang::get('admin/languages/title.language_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/languages/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/languages/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,35 +69,28 @@ class AdminLanguagesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->language->name = Input::get( 'name' );
-		    $this->language->description = Input::get( 'description' );
-	        $this->language->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->language->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->language->save();
-
-	        if( $this->language->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/languages/' . $this->language->id . '/edit')->with('success', Lang::get('admin/languages/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->language->errors()->all();
-	            //return Redirect::to('admin/languages/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->language->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/languages/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/languages/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/languages/create')->with('error', Lang::get('admin/languages/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,22 +102,25 @@ class AdminLanguagesController extends AdminController
      */
     public function getEdit($language)
     {
-        if ($language->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($language->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/languages/title.language_update');
+		    // Title
+		    $title = Lang::get('admin/languages/title.language_update');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/languages/create_edit', compact('language', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/languages')->with('error', Lang::get('admin/languages/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/languages/create_edit', compact('language', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/languages')->with('error', Lang::get('admin/languages/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -134,25 +132,29 @@ class AdminLanguagesController extends AdminController
     public function postEdit($language)
     {
         // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $language->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $language->name = Input::get( 'name' );
-	        $language->description = Input::get( 'description' );
-	        $language->published = Input::get( 'published' );
-
-            // Save if valid
-	        $language->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/languages/' . $language->id . '/edit')->with('success', Lang::get('admin/languages/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/languages/' . $language->id . '/edit')->with('error', Lang::get('admin/languages/messages.edit.error'));
-        }
+		    if( $language->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/languages/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/languages/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -163,32 +165,18 @@ class AdminLanguagesController extends AdminController
      */
     public function getDelete($language)
     {
-        // Title
-        $title = Lang::get('admin/languages/title.language_delete');
-
-        // Show the page
-        return View::make('admin/languages/delete', compact('language', 'title'));
-    }
-
-    /**
-     * Remove the specified language from storage.
-     *
-     * @param $language
-     * @return Response
-     */
-    public function postDelete($language)
-    {
 	    $language->delete();
 
-        if (!empty($language) )
-        {
-            return Redirect::to('admin/languages')->with('success', Lang::get('admin/languages/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/languages')->with('error', Lang::get('admin/languages/messages.delete.error'));
-        }
+	    if (!empty($language) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/languages/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/languages/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -212,8 +200,14 @@ class AdminLanguagesController extends AdminController
         $languages = Language::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($languages)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/languages/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/languages/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/languages/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/languages/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

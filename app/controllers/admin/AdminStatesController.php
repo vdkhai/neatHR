@@ -48,17 +48,21 @@ class AdminStatesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/states/title.state_create');
+	    // Title
+	    $title = Lang::get('admin/states/title.state_create');
+
+	    $user = $this->user->currentUser();
 
 	    // Get state list
 	    $countries = Country::lists('name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/states/create_edit', compact('countries', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/states/create_edit', compact('user', 'countries', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -68,35 +72,28 @@ class AdminStatesController extends AdminController
      */
     public function postCreate()
     {
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
-
-	    if($validator->passes())
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
+	    if ($validator->passes())
 	    {
-		    $this->state->name = Input::get( 'name' );
-		    $this->state->country_id = Input::get( 'country_id' );
-		    $this->state->code = Input::get( 'code' );
-
-		    // Save if valid.
-		    $this->state->save();
+		    $result['failedValidate'] = false;
+		    $this->state->fill(Input::all())->save();
 
 		    if( $this->state->id )
 		    {
-			    // Redirect to the new state page
-			    return Redirect::to('admin/states/' . $this->state->id . '/edit')->with('success', Lang::get('admin/states/messages.create.success'));
+			    $result['messages'] = array('success' => Lang::get('admin/states/messages.create.success'));
+			    return Response::json(json_encode($result));
 		    }
 		    else
 		    {
-			    // Get validation errors (see Ardent package)
-			    //$error = $this->state->errors()->all();
-			    //return Redirect::to('admin/states/create')
-				//    ->withInput(Input::except('password'))
-				//    ->with( 'error', $error );
+			    $result['messages'] = array('error' => Lang::get('admin/states/messages.create.error'));
+			    return Response::json(json_encode($result));
 		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-		    return Redirect::to('admin/states/create')->with('error', Lang::get('admin/states/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -108,25 +105,28 @@ class AdminStatesController extends AdminController
      */
     public function getEdit($state)
     {
-        if ($state->id)
-        {
-            // Title
-        	$title = Lang::get('admin/states/title.state_update');
+	    if ($state->id)
+	    {
+		    $user = $this->user->currentUser();
 
-	        $user = $this->user->currentUser();
+		    // Title
+		    $title = Lang::get('admin/states/title.state_update');
 
-	        // Get state list
-	        $countries = Country::lists('name', 'id');
+		    // Get state list
+		    $countries = Country::lists('name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/states/create_edit', compact('user', 'countries', 'state', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/states')->with('error', Lang::get('admin/states/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/states/create_edit', compact('state', 'user', 'countries', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/states')->with('error', Lang::get('admin/states/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -137,24 +137,28 @@ class AdminStatesController extends AdminController
      */
     public function postEdit($state)
     {
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
-
-	    if($validator->passes())
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
+	    if ($validator->passes())
 	    {
-		    $state->name = Input::get( 'name' );
-		    $state->country_id = Input::get( 'country_id' );
-		    $state->code = Input::get( 'code' );
+		    $result['failedValidate'] = false;
+		    $state->fill(Input::all())->save();
 
-		    // Save if valid.
-		    $state->save();
-
-			// Redirect to the new state page
-			return Redirect::to('admin/states/' . $state->id . '/edit')->with('success', Lang::get('admin/states/messages.create.success'));
+		    if( $state->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/states/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/states/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-		    return Redirect::to('admin/states/create')->with('error', Lang::get('admin/states/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -166,31 +170,17 @@ class AdminStatesController extends AdminController
      */
     public function getDelete($state)
     {
-        // Title
-        $title = Lang::get('admin/states/title.state_delete');
+	    $state->delete();
 
-        // Show the page
-        return View::make('admin/states/delete', compact('state', 'title'));
-    }
-
-    /**
-     * Remove the specified state from storage.
-     *
-     * @param $states
-     * @return Response
-     */
-    public function postDelete($states)
-    {
-	    $states->delete();
-
-	    if (!empty($states) )
+	    if (!empty($state) )
 	    {
-		    return Redirect::to('admin/states')->with('success', Lang::get('admin/states/messages.delete.success'));
+		    $result['messages'] = array('success' => Lang::get('admin/states/messages.delete.success'));
+		    return Response::json(json_encode($result));
 	    }
 	    else
 	    {
-		    // There was a problem deleting the user
-		    return Redirect::to('admin/states')->with('error', Lang::get('admin/states/messages.delete.error'));
+		    $result['messages'] = array('error' => Lang::get('admin/states/messages.delete.error'));
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -216,8 +206,14 @@ class AdminStatesController extends AdminController
 	                 ->select(array('states.published', 'states.id', 'countries.name as country_name', 'states.name', 'states.code'));
 
         return Datatables::of($states)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/states/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/states/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/states/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/states/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

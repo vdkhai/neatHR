@@ -9,8 +9,8 @@
 			@show
 		</title>
 		<meta name="keywords" content="your, awesome, keywords, here" />
-		<meta name="author" content="Nha Bui" />
-		<meta name="description" content="Neat HR" />
+		<meta name="author" content="Jon Doe" />
+		<meta name="description" content="Test" />
 
 		<!-- Mobile Specific Metas
 		================================================== -->

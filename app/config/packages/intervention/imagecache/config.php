@@ -50,7 +50,7 @@ return array(
    
     'templates' => array(
 	    'general' => function($image) {
-		    return $image->fit(32, 32);
+		    return $image->fit(128, 15);
 	    },
 
         'small' => function($image) { 

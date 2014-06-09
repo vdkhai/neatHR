@@ -4,5 +4,4 @@ return array(
 	'recruitvacancy_jobtitle'  => 'Job Title',
 	'recruitvacancy_amount'  => 'Amount',
 	'recruitvacancy_contactperson'  => 'Contact Person',
-	'recruitvacancy_status' => 'Status',
 );

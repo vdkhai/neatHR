@@ -35,18 +35,20 @@ class AdminEmployeeEducationsController extends AdminController
      */
     public function getCreate($employee)
     {
-		// Title
-		$title = Lang::get('admin/employeeeducations/title.employeeeducation_create');
+	    // Title
+	    $title = Lang::get('admin/employeeeducations/title.employeeeducation_create');
 
 	    $user = $this->user->currentUser();
 
 	    $educations = Education::lists('name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/employeeeducations/create_edit', compact('user', 'employee', 'educations', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employeeeducations/create_edit', compact('user', 'employee', 'educations', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -60,29 +62,28 @@ class AdminEmployeeEducationsController extends AdminController
 	    $validator = Validator::make(Input::all(), array('education_id' => 'required'));
 	    if ($validator->passes())
 	    {
+		    $result['failedValidate'] = false;
+
 		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
 		    $this->employeeeducation->fill(Input::all())->save();
 
 		    if( $this->employeeeducation->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employeeeducations/' . $employee->id . '/edit/' . $this->employeeeducation->id)->with('success', Lang::get('admin/employeeeducations/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employeeeducation->errors()->all();
-	            //return Redirect::to('admin/employeeeducations/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeeeducations/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeeeducations/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employeeeducations/' . $employee->id . '/create')->with('error', Lang::get('admin/employeeeducations/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -94,25 +95,28 @@ class AdminEmployeeEducationsController extends AdminController
      */
     public function getEdit($employee, $employeeeducation)
     {
-        if ($employeeeducation->id)
-        {
-	        // Title
-	        $title = Lang::get('admin/employeeeducations/title.employeeeducation_update');
+	    if ($employeeeducation->id)
+	    {
+		    $user = $this->user->currentUser();
 
-	        $user = $this->user->currentUser();
+		    // Title
+		    $title = Lang::get('admin/employeeeducations/title.employeeeducation_update');
 
-	        $educations = Education::lists('name', 'id');
+		    $educations = Education::lists('name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/employeeeducations/create_edit',
-		        compact('employee', 'educations', 'employeeeducation', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employeeeducations/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeeducations/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/employeeeducations/create_edit',
+			    compact('employee', 'employeeeducation', 'educations', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employeeeducations/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeeducations/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -125,22 +129,31 @@ class AdminEmployeeEducationsController extends AdminController
     {
         // Validate the inputs
         $validator = Validator::make(Input::all(), array('education_id' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
 
-        if ($validator->passes())
-        {
-	        Input::merge(array('employee_id' => $employee->id));
+		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
-	        $employeeeducation->fill(Input::all())->save();
+		    $employeeeducation->fill(Input::all())->save();
 
-			// Redirect to the new user page
-	        return Redirect::to('admin/employeeeducations/' . $employee->id . '/edit/' . $employeeeducation->id)->with('success', Lang::get('admin/employeeeducations/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employeeeducations/' . $employee->id . '/edit/' . $employeeeducation->id)->with('error', Lang::get('admin/employeeeducations/messages.edit.error'));
-        }
+		    if( $employeeeducation->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeeeducations/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeeeducations/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -151,32 +164,18 @@ class AdminEmployeeEducationsController extends AdminController
      */
     public function getDelete($employee, $employeeeducation)
     {
-        // Title
-        $title = Lang::get('admin/employeeeducations/title.employeeeducation_delete');
-
-        // Show the page
-        return View::make('admin/employeeeducations/delete', compact('employee', 'employeeeducation', 'title'));
-    }
-
-    /**
-     * Remove the specified employeeeducation from storage.
-     *
-     * @param $employeeeducation
-     * @return Response
-     */
-    public function postDelete($employee, $employeeeducation)
-    {
 	    $employeeeducation->delete();
 
-        if (!empty($employeeeducation) )
-        {
-            return Redirect::to('admin/employeeeducations/' . $employee->id . '/show')->with('success', Lang::get('admin/employeeeducations/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employeeeducations/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeeducations/messages.delete.error'));
-        }
+	    if (!empty($employeeeducation) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employeeeducations/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employeeeducations/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -208,8 +207,14 @@ class AdminEmployeeEducationsController extends AdminController
             ->where('employee_education.employee_id', '=', $employee->id);
 
         return Datatables::of($employeeEducations)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employeeeducations/\' . $employee_id . \'/edit/\' . $id ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employeeeducations/\' . $employee_id . \'/delete/\' . $id ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employeeeducations/\' . $employee_id . \'/edit/\'. $id ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employeeeducations/\' . $employee_id . \'/delete/\'. $id ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id', 'employee_id')
                 ->make();
     }

@@ -128,17 +128,21 @@
 
 	    @yield('scripts')
 
-		<div id="loading" style="display: none;" class="modal-backdrop fade in">
-			<p style="position: absolute; top: 20%; left: 50%;"><img src="{{{URL::route('imagecache', ['template' => 'general', 'filename' => 'loading.gif'])}}}" /> Please wait for loading...</p>
+		<div id="loading" style="display: none;" class="in">
+			<p style="position: absolute; top: 20%; left: 40%;"><img src="{{{URL::route('imagecache', ['template' => 'general', 'filename' => 'loading.gif'])}}}" /> Please wait for loading...</p>
 		</div>
 		<script type="text/javascript">
 			$(document).ready(function() {
 				$(document).ajaxStart(function () {
+					var modalBackdrop = $('.modal-backdrop');
+					if(modalBackdrop == 'undefined'){
+						$('#loading').addClass('modal-backdrop');
+					}
 					$('#loading').show();
 				}).ajaxStop(function () {
-					$('#loading').hide();
+					$('#loading').removeClass('modal-backdrop').hide();
 				}).ajaxError(function(){
-					$('#loading').hide();
+					$('#loading').removeClass('modal-backdrop').hide();
 				});
 			});
 		</script>

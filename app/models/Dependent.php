@@ -6,4 +6,11 @@ class Dependent extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'dependents';
+
+	/**
+	 * The attributes that aren't mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $guarded = array('_token');
 }

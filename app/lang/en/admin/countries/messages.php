@@ -3,7 +3,6 @@
 return array(
 	'does_not_exist'    => 'Country does not exist.',
 
-
 	'already_exists'    => 'User already exists!',
 
 	'login_required'    => 'The login field is required',

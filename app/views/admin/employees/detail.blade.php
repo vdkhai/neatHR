@@ -15,10 +15,17 @@
 					<a href="{{{ URL::to('admin/employees') }}}" class="btn btn-small btn-primary"><span class="glyphicon glyphicon-th-list"></span> Employees List</a>
 				</div>
 				<div class="btn-group">
-					<a href="{{{ URL::to('admin/employees/' . $employee->id . '/edit') }}}" class="btn btn-small btn-info iframe"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+					<a data-toggle="modal" data-target="#modal" id="edit" href="#" class="btn btn-small btn-info"><span class="glyphicon glyphicon-edit"></span> {{{ Lang::get('button.edit') }}}</a>
 				</div>
 			</div>
 		</h3>
+	</div>
+
+	<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content" id="replaceableContent">
+			</div>
+		</div>
 	</div>
 
 	<!-- Tabs -->
@@ -333,8 +340,37 @@
 {{-- Scripts --}}
 @section('scripts')
 <script type="text/javascript">
-	$(document).ready(function () {
-		$(".iframe").colorbox({iframe:true, width:"80%", height:"80%"});
+	$(document).ready(function() {
+		// Open modal to edit
+		$('#edit').click(function(e){
+			e.preventDefault();
+			getAjaxContent("{{{ URL::to('admin/employees/' . $employee->id . '/edit') }}}");
+			$('#modal').modal();
+		});
 	});
+
+	function getAjaxContent(url){
+		$.ajax({
+			url: url,
+			data: '',
+			dataType: 'html',
+			tryCount:0,     //current retry count
+			retryLimit:3,   //number of retries on fail
+			timeout: 5000,  //time before retry on fail
+			success: function(returnedData) {
+				var divContent = $('#replaceableContent');
+				divContent.html(returnedData);
+			},
+			error: function(xhr, textStatus, errorThrown) {
+				if (textStatus == 'timeout') { //if error is 'timeout'
+					this.tryCount++;
+					if (this.tryCount < this.retryLimit) {
+						$.ajax(this);
+						return;
+					}
+				}
+			}
+		});
+	}
 </script>
 @stop

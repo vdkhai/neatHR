@@ -48,8 +48,8 @@ class AdminOrganizationStructuresController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/organizationstructures/title.organizationstructure_create');
+	    // Title
+	    $title = Lang::get('admin/organizationstructures/title.organizationstructure_create');
 
 	    $user = $this->user->currentUser();
 
@@ -59,11 +59,13 @@ class AdminOrganizationStructuresController extends AdminController
 
 	    $organizationParents = OrganizationStructure::lists('title', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/organizationstructures/create_edit', compact('user', 'organizationTypes', 'countries', 'organizationParents', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/organizationstructures/create_edit', compact('user', 'organizationTypes', 'countries', 'organizationParents', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -77,35 +79,25 @@ class AdminOrganizationStructuresController extends AdminController
 	    $validator = Validator::make(Input::all(), array('title' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->organizationstructure->title = Input::get( 'title' );
-		    $this->organizationstructure->description = Input::get( 'description' );
-		    $this->organizationstructure->address = Input::get( 'address' );
-		    $this->organizationstructure->organization_type_id = Input::get( 'organization_type_id' );
-		    $this->organizationstructure->country_id = Input::get( 'country_id' );
-		    $this->organizationstructure->organization_parent_id = Input::get( 'organization_parent_id' );
-	        $this->organizationstructure->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->organizationstructure->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->organizationstructure->save();
-
-	        if( $this->organizationstructure->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/organizationstructures/' . $this->organizationstructure->id . '/edit')->with('success', Lang::get('admin/organizationstructures/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->organizationstructure->errors()->all();
-	            //return Redirect::to('admin/organizationstructures/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->organizationstructure->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/organizationstructures/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/organizationstructures/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/organizationstructures/create')->with('error', Lang::get('admin/organizationstructures/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -117,28 +109,32 @@ class AdminOrganizationStructuresController extends AdminController
      */
     public function getEdit($organizationstructure)
     {
-        if ($organizationstructure->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($organizationstructure->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/organizationstructures/title.organizationstructure_update');
+		    // Title
+		    $title = Lang::get('admin/organizationstructures/title.organizationstructure_update');
 
-	        $organizationTypes = OrganizationType::lists('name', 'id');
+		    $organizationTypes = OrganizationType::lists('name', 'id');
 
-	        $countries = Country::lists('name', 'id');
+		    $countries = Country::lists('name', 'id');
 
-	        $organizationParents = OrganizationStructure::lists('title', 'id');
+		    $organizationParents = OrganizationStructure::lists('title', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/organizationstructures/create_edit', compact('organizationstructure', 'user', 'organizationTypes', 'countries', 'organizationParents', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/organizationstructures')->with('error', Lang::get('admin/organizationstructures/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/organizationstructures/create_edit', compact('organizationstructure', 'user', 'organizationTypes', 'countries', 'organizationParents', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/organizationstructures')->with('error', Lang::get('admin/organizationstructures/messages.does_not_exist'));
+	    }
+
     }
 
     /**
@@ -152,27 +148,28 @@ class AdminOrganizationStructuresController extends AdminController
         // Validate the inputs
         $validator = Validator::make(Input::all(), array('title' => 'required'));
 
-        if ($validator->passes())
-        {
-	        $organizationstructure->title = Input::get( 'title' );
-	        $organizationstructure->description = Input::get( 'description' );
-	        $organizationstructure->address = Input::get( 'address' );
-	        $organizationstructure->organization_type_id = Input::get( 'organization_type_id' );
-	        $organizationstructure->country_id = Input::get( 'country_id' );
-	        $organizationstructure->organization_parent_id = Input::get( 'organization_parent_id' );
-	        $organizationstructure->published = Input::get( 'published' );
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $organizationstructure->fill(Input::all())->save();
 
-            // Save if valid
-	        $organizationstructure->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/organizationstructures/' . $organizationstructure->id . '/edit')->with('success', Lang::get('admin/organizationstructures/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/organizationstructures/' . $organizationstructure->id . '/edit')->with('error', Lang::get('admin/organizationstructures/messages.edit.error'));
-        }
+		    if( $organizationstructure->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/organizationstructures/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/organizationstructures/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -183,32 +180,18 @@ class AdminOrganizationStructuresController extends AdminController
      */
     public function getDelete($organizationstructure)
     {
-        // Title
-        $title = Lang::get('admin/organizationstructures/title.organizationstructure_delete');
-
-        // Show the page
-        return View::make('admin/organizationstructures/delete', compact('organizationstructure', 'title'));
-    }
-
-    /**
-     * Remove the specified organizationstructure from storage.
-     *
-     * @param $organizationstructure
-     * @return Response
-     */
-    public function postDelete($organizationstructure)
-    {
 	    $organizationstructure->delete();
 
-        if (!empty($organizationstructure) )
-        {
-            return Redirect::to('admin/organizationstructures')->with('success', Lang::get('admin/organizationstructures/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/organizationstructures')->with('error', Lang::get('admin/organizationstructures/messages.delete.error'));
-        }
+	    if (!empty($organizationstructure) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/organizationstructures/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/organizationstructures/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -234,8 +217,14 @@ class AdminOrganizationStructuresController extends AdminController
 	        ->select(array('organization_structures.published', 'organization_structures.id', 'organization_structures.title', 'organization_structures.description', 'organization_structures.address', 'organization_types.name AS type', 'countries.name'));
 
         return Datatables::of($organizationStructures)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/organizationstructures/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/organizationstructures/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/organizationstructures/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/organizationstructures/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		        )
                 ->remove_column('id')
                 ->make();
     }

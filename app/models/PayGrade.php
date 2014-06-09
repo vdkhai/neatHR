@@ -6,4 +6,11 @@ class PayGrade extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'pay_grades';
+
+	/**
+	 * The attributes that aren't mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $guarded = array('_token');
 }

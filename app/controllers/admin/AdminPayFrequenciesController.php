@@ -48,16 +48,18 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/payfrequencies/title.payfrequency_create');
+	    // Title
+	    $title = Lang::get('admin/payfrequencies/title.payfrequency_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/payfrequencies/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/payfrequencies/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,34 +69,28 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->payfrequency->name = Input::get( 'name' );
-	        $this->payfrequency->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->payfrequency->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->payfrequency->save();
-
-	        if( $this->payfrequency->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/payfrequencies/' . $this->payfrequency->id . '/edit')->with('success', Lang::get('admin/payfrequencies/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->payfrequency->errors()->all();
-	            //return Redirect::to('admin/payfrequencies/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->payfrequency->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/payfrequencies/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/payfrequencies/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/payfrequencies/create')->with('error', Lang::get('admin/payfrequencies/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -106,21 +102,25 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function getEdit($payfrequency)
     {
-        if ($payfrequency->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($payfrequency->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/payfrequencies/title.payfrequency_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/payfrequencies/title.payfrequency_update');
 
-        	return View::make('admin/payfrequencies/create_edit', compact('payfrequency', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/payfrequencies')->with('error', Lang::get('admin/payfrequencies/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/payfrequencies/create_edit', compact('payfrequency', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/payfrequencies')->with('error', Lang::get('admin/payfrequencies/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -131,25 +131,29 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function postEdit($payfrequency)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $payfrequency->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $payfrequency->name = Input::get( 'name' );
-	        $payfrequency->published = Input::get( 'published' );
-
-            // Save if valid
-	        $payfrequency->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/payfrequencies/' . $payfrequency->id . '/edit')->with('success', Lang::get('admin/payfrequencies/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/payfrequencies/' . $payfrequency->id . '/edit')->with('error', Lang::get('admin/payfrequencies/messages.edit.error'));
-        }
+		    if( $payfrequency->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/payfrequencies/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/payfrequencies/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -160,32 +164,18 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function getDelete($payfrequency)
     {
-        // Title
-        $title = Lang::get('admin/payfrequencies/title.payfrequency_delete');
-
-        // Show the page
-        return View::make('admin/payfrequencies/delete', compact('payfrequency', 'title'));
-    }
-
-    /**
-     * Remove the specified payfrequency from storage.
-     *
-     * @param $payfrequency
-     * @return Response
-     */
-    public function postDelete($payfrequency)
-    {
 	    $payfrequency->delete();
 
-        if (!empty($payfrequency) )
-        {
-            return Redirect::to('admin/payfrequencies')->with('success', Lang::get('admin/payfrequencies/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/payfrequencies')->with('error', Lang::get('admin/payfrequencies/messages.delete.error'));
-        }
+	    if (!empty($payfrequency) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/payfrequencies/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/payfrequencies/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -206,11 +196,17 @@ class AdminPayFrequenciesController extends AdminController
      */
     public function getData()
     {
-        $payFrequencies = PayFrequency::select(array('published', 'id', 'name'));
+        $payFrequencies = PayFrequency::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($payFrequencies)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/payfrequencies/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/payfrequencies/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/payfrequencies/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/payfrequencies/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+	                        )
                 ->remove_column('id')
                 ->make();
     }

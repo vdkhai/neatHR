@@ -48,16 +48,18 @@ class AdminEducationsController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/educations/title.education_create');
+	    // Title
+	    $title = Lang::get('admin/educations/title.education_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/educations/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/educations/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -71,31 +73,25 @@ class AdminEducationsController extends AdminController
 	    $validator = Validator::make(Input::all(), array('short_name' => 'required', 'name' => 'required'));
 	    if ($validator->passes())
 	    {
-		    $this->education->short_name = Input::get('short_name');
-	        $this->education->name = Input::get('name');
-	        $this->education->published = Input::get('published');
+		    $result['failedValidate'] = false;
+		    $this->education->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->education->save();
-
-	        if( $this->education->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/educations/' . $this->education->id . '/edit')->with('success', Lang::get('admin/educations/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->education->errors()->all();
-	            //return Redirect::to('admin/educations/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->education->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/educations/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/educations/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/educations/create')->with('error', Lang::get('admin/educations/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,21 +103,25 @@ class AdminEducationsController extends AdminController
      */
     public function getEdit($education)
     {
-        if ($education->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($education->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/educations/title.education_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/educations/title.education_update');
 
-        	return View::make('admin/educations/create_edit', compact('education', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/educations')->with('error', Lang::get('admin/educations/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/educations/create_edit', compact('education', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/educations')->with('error', Lang::get('admin/educations/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -133,24 +133,29 @@ class AdminEducationsController extends AdminController
     public function postEdit($education)
     {
         // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('short_name' => 'required', 'name' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $education->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $education->name = Input::get( 'name' );
-	        $education->published = Input::get( 'published' );
-
-            // Save if valid
-	        $education->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/educations/' . $education->id . '/edit')->with('success', Lang::get('admin/educations/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/educations/' . $education->id . '/edit')->with('error', Lang::get('admin/educations/messages.edit.error'));
-        }
+		    if( $education->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/educations/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/educations/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -161,32 +166,18 @@ class AdminEducationsController extends AdminController
      */
     public function getDelete($education)
     {
-        // Title
-        $title = Lang::get('admin/educations/title.education_delete');
-
-        // Show the page
-        return View::make('admin/educations/delete', compact('education', 'title'));
-    }
-
-    /**
-     * Remove the specified education from storage.
-     *
-     * @param $education
-     * @return Response
-     */
-    public function postDelete($education)
-    {
 	    $education->delete();
 
-        if (!empty($education) )
-        {
-            return Redirect::to('admin/educations')->with('success', Lang::get('admin/educations/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/educations')->with('error', Lang::get('admin/educations/messages.delete.error'));
-        }
+	    if (!empty($education) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/educations/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/educations/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -210,8 +201,14 @@ class AdminEducationsController extends AdminController
         $educations = Education::select(array('published', 'id', 'short_name', 'name'));
 
         return Datatables::of($educations)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/educations/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/educations/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/educations/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/educations/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

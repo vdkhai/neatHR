@@ -6,4 +6,11 @@ class Marriage extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'marriages';
+
+	/**
+	 * The attributes that aren't mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $guarded = array('_token');
 }

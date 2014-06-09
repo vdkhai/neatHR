@@ -48,18 +48,20 @@ class AdminPayGradesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/paygrades/title.paygrade_create');
+	    // Title
+	    $title = Lang::get('admin/paygrades/title.paygrade_create');
 
 	    $user = $this->user->currentUser();
 
 	    $currencies = Currency::lists('name', 'id');
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/paygrades/create_edit', compact('user', 'currencies', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/paygrades/create_edit', compact('user', 'currencies', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -69,38 +71,28 @@ class AdminPayGradesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:2', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-		    $this->paygrade->currency_id = Input::get( 'currency_id' );
-	        $this->paygrade->name = Input::get( 'name' );
-		    $this->paygrade->description = Input::get( 'description' );
-		    $this->paygrade->min_salary = Input::get( 'min_salary' );
-		    $this->paygrade->max_salary = Input::get( 'max_salary' );
-	        $this->paygrade->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->paygrade->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->paygrade->save();
-
-	        if( $this->paygrade->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/paygrades/' . $this->paygrade->id . '/edit')->with('success', Lang::get('admin/paygrades/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->paygrade->errors()->all();
-	            //return Redirect::to('admin/paygrades/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->paygrade->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/paygrades/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/paygrades/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/paygrades/create')->with('error', Lang::get('admin/paygrades/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -112,24 +104,27 @@ class AdminPayGradesController extends AdminController
      */
     public function getEdit($paygrade)
     {
-        if ($paygrade->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($paygrade->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/paygrades/title.paygrade_update');
+		    // Title
+		    $title = Lang::get('admin/paygrades/title.paygrade_update');
 
 	        $currencies = Currency::lists('name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/paygrades/create_edit', compact('paygrade', 'user', 'currencies', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/paygrades')->with('error', Lang::get('admin/paygrades/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/paygrades/create_edit', compact('paygrade', 'user', 'currencies', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/paygrades')->with('error', Lang::get('admin/paygrades/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -140,29 +135,29 @@ class AdminPayGradesController extends AdminController
      */
     public function postEdit($paygrade)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:2', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $paygrade->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $paygrade->currency_id = Input::get( 'currency_id' );
-	        $paygrade->name = Input::get( 'name' );
-	        $paygrade->description = Input::get( 'description' );
-	        $paygrade->min_salary = Input::get( 'min_salary' );
-	        $paygrade->max_salary = Input::get( 'max_salary' );
-	        $paygrade->published = Input::get( 'published' );
-
-            // Save if valid
-	        $paygrade->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/paygrades/' . $paygrade->id . '/edit')->with('success', Lang::get('admin/paygrades/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/paygrades/' . $paygrade->id . '/edit')->with('error', Lang::get('admin/paygrades/messages.edit.error'));
-        }
+		    if( $paygrade->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/paygrades/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/paygrades/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -173,32 +168,18 @@ class AdminPayGradesController extends AdminController
      */
     public function getDelete($paygrade)
     {
-        // Title
-        $title = Lang::get('admin/paygrades/title.paygrade_delete');
-
-        // Show the page
-        return View::make('admin/paygrades/delete', compact('paygrade', 'title'));
-    }
-
-    /**
-     * Remove the specified paygrade from storage.
-     *
-     * @param $paygrade
-     * @return Response
-     */
-    public function postDelete($paygrade)
-    {
 	    $paygrade->delete();
 
-        if (!empty($paygrade) )
-        {
-            return Redirect::to('admin/paygrades')->with('success', Lang::get('admin/paygrades/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/paygrades')->with('error', Lang::get('admin/paygrades/messages.delete.error'));
-        }
+	    if (!empty($paygrade) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/paygrades/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/paygrades/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -223,8 +204,14 @@ class AdminPayGradesController extends AdminController
 	        ->select(array('pay_grades.published', 'pay_grades.id', 'currencies.name AS currency_name', 'pay_grades.name', 'pay_grades.description', 'pay_grades.min_salary', 'pay_grades.max_salary'));
 
         return Datatables::of($paygrades)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/paygrades/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/paygrades/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/paygrades/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/paygrades/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

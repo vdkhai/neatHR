@@ -48,16 +48,18 @@ class AdminMarriagesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/marriages/title.marriage_create');
+	    // Title
+	    $title = Lang::get('admin/marriages/title.marriage_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/marriages/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/marriages/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,34 +69,28 @@ class AdminMarriagesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
 	    if ($validator->passes())
 	    {
-	        $this->marriage->name = Input::get( 'name' );
-	        $this->marriage->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->marriage->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->marriage->save();
-
-	        if( $this->marriage->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/marriages/' . $this->marriage->id . '/edit')->with('success', Lang::get('admin/marriages/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->marriage->errors()->all();
-	            //return Redirect::to('admin/marriages/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->marriage->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/marriages/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/marriages/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/marriages/create')->with('error', Lang::get('admin/marriages/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -106,21 +102,25 @@ class AdminMarriagesController extends AdminController
      */
     public function getEdit($marriage)
     {
-        if ($marriage->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($marriage->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/marriages/title.marriage_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/marriages/title.marriage_update');
 
-        	return View::make('admin/marriages/create_edit', compact('marriage', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/marriages')->with('error', Lang::get('admin/marriages/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/marriages/create_edit', compact('marriage', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/marriages')->with('error', Lang::get('admin/marriages/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -131,25 +131,30 @@ class AdminMarriagesController extends AdminController
      */
     public function postEdit($marriage)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    // Validate the inputs
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $marriage->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $marriage->name = Input::get( 'name' );
-	        $marriage->published = Input::get( 'published' );
-
-            // Save if valid
-	        $marriage->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/marriages/' . $marriage->id . '/edit')->with('success', Lang::get('admin/marriages/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/marriages/' . $marriage->id . '/edit')->with('error', Lang::get('admin/marriages/messages.edit.error'));
-        }
+		    if( $marriage->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/marriages/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/marriages/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -160,32 +165,18 @@ class AdminMarriagesController extends AdminController
      */
     public function getDelete($marriage)
     {
-        // Title
-        $title = Lang::get('admin/marriages/title.marriage_delete');
-
-        // Show the page
-        return View::make('admin/marriages/delete', compact('marriage', 'title'));
-    }
-
-    /**
-     * Remove the specified marriage from storage.
-     *
-     * @param $marriage
-     * @return Response
-     */
-    public function postDelete($marriage)
-    {
 	    $marriage->delete();
 
-        if (!empty($marriage) )
-        {
-            return Redirect::to('admin/marriages')->with('success', Lang::get('admin/marriages/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/marriages')->with('error', Lang::get('admin/marriages/messages.delete.error'));
-        }
+	    if (!empty($marriage) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/marriages/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/marriages/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -209,8 +200,14 @@ class AdminMarriagesController extends AdminController
         $marriages = Marriage::select(array('published', 'id', 'name'));
 
         return Datatables::of($marriages)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/marriages/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/marriages/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/marriages/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/marriages/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		        )
                 ->remove_column('id')
                 ->make();
     }

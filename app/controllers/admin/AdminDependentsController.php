@@ -56,8 +56,10 @@ class AdminDependentsController extends AdminController
 		// Mode
 		$mode = 'create';
 
-		// Show the page
-		return View::make('admin/dependents/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/dependents/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -68,33 +70,28 @@ class AdminDependentsController extends AdminController
     public function postCreate()
     {
 	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
 	    if ($validator->passes())
 	    {
-	        $this->dependent->name = Input::get( 'name' );
-	        $this->dependent->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->dependent->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->dependent->save();
-
-	        if( $this->dependent->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/dependents/' . $this->dependent->id . '/edit')->with('success', Lang::get('admin/dependents/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->dependent->errors()->all();
-	            //return Redirect::to('admin/dependents/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->dependent->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/dependents/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/dependents/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/dependents/create')->with('error', Lang::get('admin/dependents/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -106,21 +103,25 @@ class AdminDependentsController extends AdminController
      */
     public function getEdit($dependent)
     {
-        if ($dependent->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($dependent->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/dependents/title.dependent_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/dependents/title.dependent_update');
 
-        	return View::make('admin/dependents/create_edit', compact('dependent', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/dependents')->with('error', Lang::get('admin/dependents/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/dependents/create_edit', compact('dependent', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/dependents')->with('error', Lang::get('admin/dependents/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -131,25 +132,29 @@ class AdminDependentsController extends AdminController
      */
     public function postEdit($dependent)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $dependent->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $dependent->name = Input::get( 'name' );
-	        $dependent->published = Input::get( 'published' );
-
-            // Save if valid
-	        $dependent->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/dependents/' . $dependent->id . '/edit')->with('success', Lang::get('admin/dependents/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/dependents/' . $dependent->id . '/edit')->with('error', Lang::get('admin/dependents/messages.edit.error'));
-        }
+		    if( $dependent->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/dependents/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/dependents/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -160,32 +165,18 @@ class AdminDependentsController extends AdminController
      */
     public function getDelete($dependent)
     {
-        // Title
-        $title = Lang::get('admin/dependents/title.dependent_delete');
-
-        // Show the page
-        return View::make('admin/dependents/delete', compact('dependent', 'title'));
-    }
-
-    /**
-     * Remove the specified dependent from storage.
-     *
-     * @param $dependent
-     * @return Response
-     */
-    public function postDelete($dependent)
-    {
 	    $dependent->delete();
 
-        if (!empty($dependent) )
-        {
-            return Redirect::to('admin/dependents')->with('success', Lang::get('admin/dependents/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/dependents')->with('error', Lang::get('admin/dependents/messages.delete.error'));
-        }
+	    if (!empty($dependent) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/dependents/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/dependents/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -206,11 +197,17 @@ class AdminDependentsController extends AdminController
      */
     public function getData()
     {
-        $dependents = Dependent::select(array('published', 'id', 'name'));
+        $dependents = Dependent::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($dependents)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/dependents/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/dependents/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/dependents/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/dependents/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

@@ -117,7 +117,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('countries/{country}/edit', 'AdminCountriesController@getEdit');
 	Route::post('countries/{country}/edit', 'AdminCountriesController@postEdit');
 	Route::get('countries/{country}/delete', 'AdminCountriesController@getDelete');
-	Route::post('countries/{country}/delete', 'AdminCountriesController@postDelete');
 	Route::controller('countries', 'AdminCountriesController');
 
 	# States Management
@@ -125,7 +124,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('states/{state}/edit', 'AdminStatesController@getEdit');
 	Route::post('states/{state}/edit', 'AdminStatesController@postEdit');
 	Route::get('states/{state}/delete', 'AdminStatesController@getDelete');
-	Route::post('states/{state}/delete', 'AdminStatesController@postDelete');
 	Route::controller('states', 'AdminStatesController');
 
 	# Nationalities Management
@@ -133,7 +131,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('nationalities/{nationality}/edit', 'AdminNationalitiesController@getEdit');
 	Route::post('nationalities/{nationality}/edit', 'AdminNationalitiesController@postEdit');
 	Route::get('nationalities/{nationality}/delete', 'AdminNationalitiesController@getDelete');
-	Route::post('nationalities/{nationality}/delete', 'AdminNationalitiesController@postDelete');
 	Route::controller('nationalities', 'AdminNationalitiesController');
 
 	# Languages Management
@@ -141,15 +138,12 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('languages/{language}/edit', 'AdminLanguagesController@getEdit');
 	Route::post('languages/{language}/edit', 'AdminLanguagesController@postEdit');
 	Route::get('languages/{language}/delete', 'AdminLanguagesController@getDelete');
-	Route::post('languages/{language}/delete', 'AdminLanguagesController@postDelete');
 	Route::controller('languages', 'AdminLanguagesController');
 
 	# Currencies Management
 	Route::get('currencies/{currency}/show', 'AdminCurrenciesController@getShow');
 	Route::get('currencies/{currency}/edit', 'AdminCurrenciesController@getEdit');
 	Route::post('currencies/{currency}/edit', 'AdminCurrenciesController@postEdit');
-	Route::get('currencies/{currency}/delete', 'AdminCurrenciesController@getDelete');
-	Route::post('currencies/{currency}/delete', 'AdminCurrenciesController@postDelete');
 	Route::controller('currencies', 'AdminCurrenciesController');
 
 	# Educations Management
@@ -157,7 +151,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('educations/{education}/edit', 'AdminEducationsController@getEdit');
 	Route::post('educations/{education}/edit', 'AdminEducationsController@postEdit');
 	Route::get('educations/{education}/delete', 'AdminEducationsController@getDelete');
-	Route::post('educations/{education}/delete', 'AdminEducationsController@postDelete');
 	Route::controller('educations', 'AdminEducationsController');
 
 	# Skills Management
@@ -165,7 +158,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('skills/{skill}/edit', 'AdminSkillsController@getEdit');
 	Route::post('skills/{skill}/edit', 'AdminSkillsController@postEdit');
 	Route::get('skills/{skill}/delete', 'AdminSkillsController@getDelete');
-	Route::post('skills/{skill}/delete', 'AdminSkillsController@postDelete');
 	Route::controller('skills', 'AdminSkillsController');
 
 	# Certifications Management
@@ -173,7 +165,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('certifications/{certification}/edit', 'AdminCertificationsController@getEdit');
 	Route::post('certifications/{certification}/edit', 'AdminCertificationsController@postEdit');
 	Route::get('certifications/{certification}/delete', 'AdminCertificationsController@getDelete');
-	Route::post('certifications/{certification}/delete', 'AdminCertificationsController@postDelete');
 	Route::controller('certifications', 'AdminCertificationsController');
 
 	#----------------------------------------------------
@@ -182,7 +173,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employmenttypes/{employmenttype}/edit', 'AdminEmploymentTypesController@getEdit');
 	Route::post('employmenttypes/{employmenttype}/edit', 'AdminEmploymentTypesController@postEdit');
 	Route::get('employmenttypes/{employmenttype}/delete', 'AdminEmploymentTypesController@getDelete');
-	Route::post('employmenttypes/{employmenttype}/delete', 'AdminEmploymentTypesController@postDelete');
 	Route::controller('employmenttypes', 'AdminEmploymentTypesController');
 
 	# Marriages Management
@@ -190,7 +180,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('marriages/{marriage}/edit', 'AdminMarriagesController@getEdit');
 	Route::post('marriages/{marriage}/edit', 'AdminMarriagesController@postEdit');
 	Route::get('marriages/{marriage}/delete', 'AdminMarriagesController@getDelete');
-	Route::post('marriages/{marriage}/delete', 'AdminMarriagesController@postDelete');
 	Route::controller('marriages', 'AdminMarriagesController');
 
 	#----------------------------------------------------
@@ -199,7 +188,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('jobtitles/{jobtitle}/edit', 'AdminJobTitlesController@getEdit');
 	Route::post('jobtitles/{jobtitle}/edit', 'AdminJobTitlesController@postEdit');
 	Route::get('jobtitles/{jobtitle}/delete', 'AdminJobTitlesController@getDelete');
-	Route::post('jobtitles/{jobtitle}/delete', 'AdminJobTitlesController@postDelete');
 	Route::controller('jobtitles', 'AdminJobTitlesController');
 
 	# Recruitment Status Management
@@ -207,7 +195,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('recruitmentstatus/{recruitmentstatus}/edit', 'AdminRecruitmentStatusController@getEdit');
 	Route::post('recruitmentstatus/{recruitmentstatus}/edit', 'AdminRecruitmentStatusController@postEdit');
 	Route::get('recruitmentstatus/{recruitmentstatus}/delete', 'AdminRecruitmentStatusController@getDelete');
-	Route::post('recruitmentstatus/{recruitmentstatus}/delete', 'AdminRecruitmentStatusController@postDelete');
 	Route::controller('recruitmentstatus', 'AdminRecruitmentStatusController');
 
 	# Pay Grades Management
@@ -215,7 +202,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('paygrades/{paygrade}/edit', 'AdminPayGradesController@getEdit');
 	Route::post('paygrades/{paygrade}/edit', 'AdminPayGradesController@postEdit');
 	Route::get('paygrades/{paygrade}/delete', 'AdminPayGradesController@getDelete');
-	Route::post('paygrades/{paygrade}/delete', 'AdminPayGradesController@postDelete');
 	Route::controller('paygrades', 'AdminPayGradesController');
 
 	# Organization Type Management
@@ -223,7 +209,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('organizationtypes/{organizationtype}/edit', 'AdminOrganizationTypesController@getEdit');
 	Route::post('organizationtypes/{organizationtype}/edit', 'AdminOrganizationTypesController@postEdit');
 	Route::get('organizationtypes/{organizationtype}/delete', 'AdminOrganizationTypesController@getDelete');
-	Route::post('organizationtypes/{organizationtype}/delete', 'AdminOrganizationTypesController@postDelete');
 	Route::controller('organizationtypes', 'AdminOrganizationTypesController');
 
 	# Organization Structure Management
@@ -231,7 +216,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('organizationstructures/{organizationstructure}/edit', 'AdminOrganizationStructuresController@getEdit');
 	Route::post('organizationstructures/{organizationstructure}/edit', 'AdminOrganizationStructuresController@postEdit');
 	Route::get('organizationstructures/{organizationstructure}/delete', 'AdminOrganizationStructuresController@getDelete');
-	Route::post('organizationstructures/{organizationstructure}/delete', 'AdminOrganizationStructuresController@postDelete');
 	Route::controller('organizationstructures', 'AdminOrganizationStructuresController');
 
 	# Dependent Management
@@ -239,7 +223,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('dependents/{dependent}/edit', 'AdminDependentsController@getEdit');
 	Route::post('dependents/{dependent}/edit', 'AdminDependentsController@postEdit');
 	Route::get('dependents/{dependent}/delete', 'AdminDependentsController@getDelete');
-	Route::post('dependents/{dependent}/delete', 'AdminDependentsController@postDelete');
 	Route::controller('dependents', 'AdminDependentsController');
 
 	# Pay Frequency Management
@@ -247,7 +230,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('payfrequencies/{payfrequency}/edit', 'AdminPayFrequenciesController@getEdit');
 	Route::post('payfrequencies/{payfrequency}/edit', 'AdminPayFrequenciesController@postEdit');
 	Route::get('payfrequencies/{payfrequency}/delete', 'AdminPayFrequenciesController@getDelete');
-	Route::post('payfrequencies/{payfrequency}/delete', 'AdminPayFrequenciesController@postDelete');
 	Route::controller('payfrequencies', 'AdminPayFrequenciesController');
 
 	#----------------------------------------------------
@@ -256,7 +238,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employees/{employee}/edit', 'AdminEmployeesController@getEdit');
 	Route::post('employees/{employee}/edit', 'AdminEmployeesController@postEdit');
 	Route::get('employees/{employee}/delete', 'AdminEmployeesController@getDelete');
-	Route::post('employees/{employee}/delete', 'AdminEmployeesController@postDelete');
 	Route::get('employees/import', 'AdminEmployeesController@getImport');
 	Route::post('employees/import', 'AdminEmployeesController@postImport');
 	Route::get('employees/template', 'AdminEmployeesController@getTemplate');
@@ -271,7 +252,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeeemergencycontacts/{employee}/edit/{employeeemergencycontact}', 'AdminEmployeeEmergencyContactsController@getEdit');
 	Route::post('employeeemergencycontacts/{employee}/edit/{employeeemergencycontact}', 'AdminEmployeeEmergencyContactsController@postEdit');
 	Route::get('employeeemergencycontacts/{employee}/delete/{employeeemergencycontact}', 'AdminEmployeeEmergencyContactsController@getDelete');
-	Route::post('employeeemergencycontacts/{employee}/delete/{employeeemergencycontact}', 'AdminEmployeeEmergencyContactsController@postDelete');
 
 	# Employee Dependent Management
 	Route::get('employeedependents/{employee}/show', 'AdminEmployeeDependentsController@getShow');
@@ -281,7 +261,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeedependents/{employee}/edit/{employeedependent}', 'AdminEmployeeDependentsController@getEdit');
 	Route::post('employeedependents/{employee}/edit/{employeedependent}', 'AdminEmployeeDependentsController@postEdit');
 	Route::get('employeedependents/{employee}/delete/{employeedependent}', 'AdminEmployeeDependentsController@getDelete');
-	Route::post('employeedependents/{employee}/delete/{employeedependent}', 'AdminEmployeeDependentsController@postDelete');
 
 	# EmployeeSkills Management
 	Route::get('employeeskills/{employee}/show', 'AdminEmployeeSkillsController@getShow');
@@ -291,7 +270,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeeskills/{employee}/edit/{employeeskill}', 'AdminEmployeeSkillsController@getEdit');
 	Route::post('employeeskills/{employee}/edit/{employeeskill}', 'AdminEmployeeSkillsController@postEdit');
 	Route::get('employeeskills/{employee}/delete/{employeeskill}', 'AdminEmployeeSkillsController@getDelete');
-	Route::post('employeeskills/{employee}/delete/{employeeskill}', 'AdminEmployeeSkillsController@postDelete');
 
 	# EmployeeEducations Management
 	Route::get('employeeeducations/{employee}/show', 'AdminEmployeeEducationsController@getShow');
@@ -301,7 +279,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeeeducations/{employee}/edit/{employeeeducation}', 'AdminEmployeeEducationsController@getEdit');
 	Route::post('employeeeducations/{employee}/edit/{employeeeducation}', 'AdminEmployeeEducationsController@postEdit');
 	Route::get('employeeeducations/{employee}/delete/{employeeeducation}', 'AdminEmployeeEducationsController@getDelete');
-	Route::post('employeeeducations/{employee}/delete/{employeeeducation}', 'AdminEmployeeEducationsController@postDelete');
 
 	# EmployeeLanguages Management
 	Route::get('employeelanguages/{employee}/show', 'AdminEmployeeLanguagesController@getShow');
@@ -311,7 +288,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeelanguages/{employee}/edit/{employeelanguage}', 'AdminEmployeeLanguagesController@getEdit');
 	Route::post('employeelanguages/{employee}/edit/{employeelanguage}', 'AdminEmployeeLanguagesController@postEdit');
 	Route::get('employeelanguages/{employee}/delete/{employeelanguage}', 'AdminEmployeeLanguagesController@getDelete');
-	Route::post('employeelanguages/{employee}/delete/{employeelanguage}', 'AdminEmployeeLanguagesController@postDelete');
 
 	# Employee Certifications Management
 	Route::get('employeecertifications/{employee}/show', 'AdminEmployeeCertificationsController@getShow');
@@ -321,7 +297,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeecertifications/{employee}/edit/{employeecertification}', 'AdminEmployeeCertificationsController@getEdit');
 	Route::post('employeecertifications/{employee}/edit/{employeecertification}', 'AdminEmployeeCertificationsController@postEdit');
 	Route::get('employeecertifications/{employee}/delete/{employeecertification}', 'AdminEmployeeCertificationsController@getDelete');
-	Route::post('employeecertifications/{employee}/delete/{employeecertification}', 'AdminEmployeeCertificationsController@postDelete');
 
 	# Employee Experiences Management
 	Route::get('employeeexperiences/{employee}/show', 'AdminEmployeeExperiencesController@getShow');
@@ -331,7 +306,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeeexperiences/{employee}/edit/{employeeexperience}', 'AdminEmployeeExperiencesController@getEdit');
 	Route::post('employeeexperiences/{employee}/edit/{employeeexperience}', 'AdminEmployeeExperiencesController@postEdit');
 	Route::get('employeeexperiences/{employee}/delete/{employeeexperience}', 'AdminEmployeeExperiencesController@getDelete');
-	Route::post('employeeexperiences/{employee}/delete/{employeeexperience}', 'AdminEmployeeExperiencesController@postDelete');
 
 	# Employee Salary Management
 	Route::get('employeesalaries/{employee}/show', 'AdminEmployeeSalariesController@getShow');
@@ -341,7 +315,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('employeesalaries/{employee}/edit/{employeesalary}', 'AdminEmployeeSalariesController@getEdit');
 	Route::post('employeesalaries/{employee}/edit/{employeesalary}', 'AdminEmployeeSalariesController@postEdit');
 	Route::get('employeesalaries/{employee}/delete/{employeesalary}', 'AdminEmployeeSalariesController@getDelete');
-	Route::post('employeesalaries/{employee}/delete/{employeesalary}', 'AdminEmployeeSalariesController@postDelete');
 
 	#----------------------------------------------------
 	# Recruitment-Vacancies Management
@@ -349,7 +322,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('recruitvacancies/{recruitvacancy}/edit', 'AdminRecruitVacanciesController@getEdit');
 	Route::post('recruitvacancies/{recruitvacancy}/edit', 'AdminRecruitVacanciesController@postEdit');
 	Route::get('recruitvacancies/{recruitvacancy}/delete', 'AdminRecruitVacanciesController@getDelete');
-	Route::post('recruitvacancies/{recruitvacancy}/delete', 'AdminRecruitVacanciesController@postDelete');
 	Route::controller('recruitvacancies', 'AdminRecruitVacanciesController');
 
 	# Recruitment-Candidates Management
@@ -357,7 +329,6 @@ Route::group(array('prefix' => 'admin', 'before' => 'auth'), function()
 	Route::get('recruitcandidates/{recruitcandidate}/edit', 'AdminRecruitCandidatesController@getEdit');
 	Route::post('recruitcandidates/{recruitcandidate}/edit', 'AdminRecruitCandidatesController@postEdit');
 	Route::get('recruitcandidates/{recruitcandidate}/delete', 'AdminRecruitCandidatesController@getDelete');
-	Route::post('recruitcandidates/{recruitcandidate}/delete', 'AdminRecruitCandidatesController@postDelete');
 	Route::controller('recruitcandidates', 'AdminRecruitCandidatesController');
 
 	# Admin Dashboard. Always need to be added last.

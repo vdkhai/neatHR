@@ -76,8 +76,10 @@ class AdminEmployeesController extends AdminController
 		// Mode
 		$mode = 'create';
 
-		// Show the page
-		return View::make('admin/employees/create_edit', compact('user', 'genders', 'nationalities', 'marriages', 'employmentTypes', 'jobTitles', 'payGrades', 'countries', 'states', 'departments', 'supervisors', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employees/create_edit', compact('user', 'genders', 'nationalities', 'marriages', 'employmentTypes', 'jobTitles', 'payGrades', 'countries', 'states', 'departments', 'supervisors', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -87,11 +89,10 @@ class AdminEmployeesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
 	    $validator = Validator::make(Input::all(), array('employee_number' => 'required'));
 	    if ($validator->passes())
 	    {
-	        // Save if valid. Bind data from the form into model before save.
+		    $result['failedValidate'] = false;
 		    $this->employee->fill(Input::all())->save();
 
 		    // Save the employee picture into the media table
@@ -127,24 +128,22 @@ class AdminEmployeesController extends AdminController
 			    }
 		    }
 
-	        if( $this->employee->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employees/' . $this->employee->id . '/edit')->with('success', Lang::get('admin/employees/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employee->errors()->all();
-	            //return Redirect::to('admin/employees/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->employee->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employees/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employees/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employees/create')->with('error', Lang::get('admin/employees/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -156,43 +155,45 @@ class AdminEmployeesController extends AdminController
      */
     public function getEdit($employee)
     {
-        if ($employee->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($employee->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/employees/title.employee_update');
+		    // Title
+		    $title = Lang::get('admin/employees/title.employee_update');
 
-	        $genders = Gender::lists('name', 'id');
+		    $genders = Gender::lists('name', 'id');
 
-	        $nationalities = Nationality::lists('name', 'id');
+		    $nationalities = Nationality::lists('name', 'id');
 
-	        $marriages = Marriage::lists('name', 'id');
+		    $marriages = Marriage::lists('name', 'id');
 
-	        $employmentTypes = EmploymentType::lists('name', 'id');
+		    $employmentTypes = EmploymentType::lists('name', 'id');
 
-	        $jobTitles = JobTitle::lists('name', 'id');
+		    $jobTitles = JobTitle::lists('name', 'id');
 
-	        $payGrades = PayGrade::lists('name', 'id');
+		    $payGrades = PayGrade::lists('name', 'id');
 
-	        $countries = Country::lists('name', 'id');
+		    $countries = Country::lists('name', 'id');
 
-	        $states = State::lists('name', 'id');
+		    $states = State::lists('name', 'id');
 
-	        $departments = OrganizationStructure::lists('title', 'id');
+		    $departments = OrganizationStructure::lists('title', 'id');
 
-	        $supervisors = Employee::lists('first_name', 'id');
+		    $supervisors = Employee::lists('first_name', 'id');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
+		    // Show the page
+		    $view = View::make('admin/employees/create_edit',
+			    compact('employee', 'user', 'genders', 'nationalities', 'marriages', 'employmentTypes', 'jobTitles', 'payGrades', 'countries', 'states', 'departments', 'supervisors', 'title', 'mode'));
 
-        	return View::make('admin/employees/create_edit',
-		        compact('employee', 'user', 'genders', 'nationalities', 'marriages', 'employmentTypes', 'jobTitles', 'payGrades', 'countries', 'states', 'departments', 'supervisors', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employees')->with('error', Lang::get('admin/employees/messages.does_not_exist'));
-        }
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employees')->with('error', Lang::get('admin/employees/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -204,54 +205,62 @@ class AdminEmployeesController extends AdminController
     public function postEdit($employee)
     {
         // Validate the inputs
-        $validator = Validator::make(Input::all(), array('employee_number' => 'required'));
+	    $validator = Validator::make(Input::all(), array('employee_number' => 'required'));
 
-        if ($validator->passes())
-        {
-	        // Save if valid. Bind data from the form into model before save.
-	        $employee->fill(Input::all())->save();
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $employee->fill(Input::all())->save();
 
-	        // Save the employee picture into the media table
-	        if (Input::hasFile('picture') && !is_null($employee->id))
-	        {
-		        $picture = Input::file('picture');
+		    if (Input::hasFile('picture') && !is_null($employee->id))
+		    {
+			    $picture = Input::file('picture');
 
-		        if($picture->isValid())
-		        {
-			        $extension = $picture->getClientOriginalExtension();
+			    if($picture->isValid())
+			    {
+				    $extension = $picture->getClientOriginalExtension();
 
-			        $path = public_path() . '/upload/images';
-			        $fileName = strtolower(Input::get('employee_code') . '.' . $extension);
+				    $path = public_path() . '/upload/images';
+				    $fileName = strtolower(Input::get('employee_code') . '.' . $extension);
 
-			        $pictureData = array(
-				        'employee_id' => $employee->id,
-				        'media_type' => 'picture',
-				        'data' => '',
-				        'file_path' => $path,
-				        'file_name' => $fileName,
-				        'file_origin_name' => $picture->getClientOriginalName(),
-				        'file_size' => $picture->getSize(),
-				        'file_extension' => $extension,
-				        'file_mime_type' => $picture->getMimeType(),
-			        );
+				    $pictureData = array(
+					    'employee_id' => $employee->id,
+					    'media_type' => 'picture',
+					    'data' => '',
+					    'file_path' => $path,
+					    'file_name' => $fileName,
+					    'file_origin_name' => $picture->getClientOriginalName(),
+					    'file_size' => $picture->getSize(),
+					    'file_extension' => $extension,
+					    'file_mime_type' => $picture->getMimeType(),
+				    );
 
-			        // Storage the persional picture
-			        $picture->move($path, $fileName);
+				    // Storage the persional picture
+				    $picture->move($path, $fileName);
 
-			        // Get last insert id from employee
-			        $employeeMedia = new EmployeeMedia();
-			        $employeeMedia->fill($pictureData)->save();
-		        }
-	        }
+				    // Get last insert id from employee
+				    $employeeMedia = new EmployeeMedia();
+				    $employeeMedia->fill($pictureData)->save();
+			    }
+		    }
 
-	        // Redirect to the new user page
-	        return Redirect::to('admin/employees/' . $employee->id . '/edit')->with('success', Lang::get('admin/employees/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employees/' . $employee->id . '/edit')->with('error', Lang::get('admin/employees/messages.edit.error'));
-        }
+		    if( $employee->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employees/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employees/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -262,32 +271,18 @@ class AdminEmployeesController extends AdminController
      */
     public function getDelete($employee)
     {
-        // Title
-        $title = Lang::get('admin/employees/title.employee_delete');
-
-        // Show the page
-        return View::make('admin/employees/delete', compact('employee', 'title'));
-    }
-
-    /**
-     * Remove the specified employee from storage.
-     *
-     * @param $employee
-     * @return Response
-     */
-    public function postDelete($employee)
-    {
 	    $employee->delete();
 
-        if (!empty($employee) )
-        {
-            return Redirect::to('admin/employees')->with('success', Lang::get('admin/employees/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employees')->with('error', Lang::get('admin/employees/messages.delete.error'));
-        }
+	    if (!empty($employee) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employees/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employees/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -337,8 +332,15 @@ class AdminEmployeesController extends AdminController
 
         return Datatables::of($employees)
                 ->edit_column('employee_code', '<a href="{{{ URL::to(\'admin/employees/\' . $id . \'/show\' ) }}}"> {{{$employee_code}}}</a>')
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employees/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employees/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="{{{ URL::to(\'admin/employees/\' . $id . \'/show\' ) }}}">{{{ Lang::get(\'button.show\') }}}</a></li>
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employees/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employees/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

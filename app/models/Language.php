@@ -6,4 +6,11 @@ class Language extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'languages';
+
+	/**
+	 * The attributes that aren't mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $guarded = array('_token');
 }

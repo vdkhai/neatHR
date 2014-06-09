@@ -6,4 +6,11 @@ class Currency extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'currencies';
+
+	/**
+	 * The attributes that aren't mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $guarded = array('_token');
 }

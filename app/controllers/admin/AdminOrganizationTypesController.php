@@ -48,16 +48,18 @@ class AdminOrganizationTypesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/organizationtypes/title.organizationtype_create');
+	    // Title
+	    $title = Lang::get('admin/organizationtypes/title.organizationtype_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/organizationtypes/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/organizationtypes/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,35 +69,28 @@ class AdminOrganizationTypesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->organizationtype->name = Input::get( 'name' );
-		    $this->organizationtype->description = Input::get( 'description' );
-	        $this->organizationtype->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->organizationtype->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->organizationtype->save();
-
-	        if( $this->organizationtype->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/organizationtypes/' . $this->organizationtype->id . '/edit')->with('success', Lang::get('admin/organizationtypes/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->organizationtype->errors()->all();
-	            //return Redirect::to('admin/organizationtypes/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->organizationtype->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/organizationtypes/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/organizationtypes/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/organizationtypes/create')->with('error', Lang::get('admin/organizationtypes/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,21 +102,25 @@ class AdminOrganizationTypesController extends AdminController
      */
     public function getEdit($organizationtype)
     {
-        if ($organizationtype->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($organizationtype->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/organizationtypes/title.organizationtype_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/organizationtypes/title.organizationtype_update');
 
-        	return View::make('admin/organizationtypes/create_edit', compact('organizationtype', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/organizationtypes')->with('error', Lang::get('admin/organizationtypes/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/organizationtypes/create_edit', compact('organizationtype', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/organizationtypes')->with('error', Lang::get('admin/organizationtypes/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -132,26 +131,29 @@ class AdminOrganizationTypesController extends AdminController
      */
     public function postEdit($organizationtype)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $organizationtype->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $organizationtype->name = Input::get( 'name' );
-	        $organizationtype->description = Input::get( 'description' );
-	        $organizationtype->published = Input::get( 'published' );
-
-            // Save if valid
-	        $organizationtype->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/organizationtypes/' . $organizationtype->id . '/edit')->with('success', Lang::get('admin/organizationtypes/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/organizationtypes/' . $organizationtype->id . '/edit')->with('error', Lang::get('admin/organizationtypes/messages.edit.error'));
-        }
+		    if( $organizationtype->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/organizationtypes/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/organizationtypes/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -162,32 +164,18 @@ class AdminOrganizationTypesController extends AdminController
      */
     public function getDelete($organizationtype)
     {
-        // Title
-        $title = Lang::get('admin/organizationtypes/title.organizationtype_delete');
-
-        // Show the page
-        return View::make('admin/organizationtypes/delete', compact('organizationtype', 'title'));
-    }
-
-    /**
-     * Remove the specified organizationtype from storage.
-     *
-     * @param $organizationtype
-     * @return Response
-     */
-    public function postDelete($organizationtype)
-    {
 	    $organizationtype->delete();
 
-        if (!empty($organizationtype) )
-        {
-            return Redirect::to('admin/organizationtypes')->with('success', Lang::get('admin/organizationtypes/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/organizationtypes')->with('error', Lang::get('admin/organizationtypes/messages.delete.error'));
-        }
+	    if (!empty($organizationtype) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/organizationtypes/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/organizationtypes/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -211,8 +199,14 @@ class AdminOrganizationTypesController extends AdminController
         $organizationtypes = OrganizationType::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($organizationtypes)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/organizationtypes/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/organizationtypes/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/organizationtypes/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/organizationtypes/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

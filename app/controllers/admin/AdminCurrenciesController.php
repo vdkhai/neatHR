@@ -56,8 +56,10 @@ class AdminCurrenciesController extends AdminController
 		// Mode
 		$mode = 'create';
 
-		// Show the page
-		return View::make('admin/currencies/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/currencies/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -68,37 +70,28 @@ class AdminCurrenciesController extends AdminController
     public function postCreate()
     {
 	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('code' => 'required|max:3', 'name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'code' => 'required|min:3|max:3'));
 	    if ($validator->passes())
 	    {
-	        $this->currency->code = Input::get( 'code' );
-		    $this->currency->name = Input::get( 'name' );
-		    $this->currency->symbol_left = Input::get( 'symbol_left' );
-		    $this->currency->symbol_right = Input::get( 'symbol_right' );
-		    $this->currency->description = Input::get( 'description' );
-	        $this->currency->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->currency->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->currency->save();
-
-	        if( $this->currency->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/currencies/' . $this->currency->id . '/edit')->with('success', Lang::get('admin/currencies/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->currency->errors()->all();
-	            //return Redirect::to('admin/currencies/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->currency->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/currencies/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/currencies/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/currencies/create')->with('error', Lang::get('admin/currencies/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -110,21 +103,25 @@ class AdminCurrenciesController extends AdminController
      */
     public function getEdit($currency)
     {
-        if ($currency->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($currency->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/currencies/title.currency_update');
-        	// Mode
-        	$mode = 'edit';
+		    // Title
+		    $title = Lang::get('admin/currencies/title.currency_update');
 
-        	return View::make('admin/currencies/create_edit', compact('currency', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/currencies')->with('error', Lang::get('admin/currencies/messages.does_not_exist'));
-        }
+		    // Mode
+		    $mode = 'edit';
+
+		    // Show the page
+		    $view = View::make('admin/currencies/create_edit', compact('currency', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/currencies')->with('error', Lang::get('admin/currencies/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -135,29 +132,29 @@ class AdminCurrenciesController extends AdminController
      */
     public function postEdit($currency)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('code' => 'required|max:3', 'name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'code' => 'required|min:3|max:3'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $currency->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $currency->code = Input::get( 'code' );
-	        $currency->name = Input::get( 'name' );
-	        $currency->symbol_left = Input::get( 'symbol_left' );
-	        $currency->symbol_right = Input::get( 'symbol_right' );
-	        $currency->description = Input::get( 'description' );
-	        $currency->published = Input::get( 'published' );
-
-            // Save if valid
-	        $currency->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/currencies/' . $currency->id . '/edit')->with('success', Lang::get('admin/currencies/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/currencies/' . $currency->id . '/edit')->with('error', Lang::get('admin/currencies/messages.edit.error'));
-        }
+		    if( $currency->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/currencies/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/currencies/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -168,32 +165,18 @@ class AdminCurrenciesController extends AdminController
      */
     public function getDelete($currency)
     {
-        // Title
-        $title = Lang::get('admin/currencies/title.currency_delete');
-
-        // Show the page
-        return View::make('admin/currencies/delete', compact('currency', 'title'));
-    }
-
-    /**
-     * Remove the specified currency from storage.
-     *
-     * @param $currency
-     * @return Response
-     */
-    public function postDelete($currency)
-    {
 	    $currency->delete();
 
-        if (!empty($currency) )
-        {
-            return Redirect::to('admin/currencies')->with('success', Lang::get('admin/currencies/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/currencies')->with('error', Lang::get('admin/currencies/messages.delete.error'));
-        }
+	    if (!empty($currency) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/currencies/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/currencies/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -217,8 +200,14 @@ class AdminCurrenciesController extends AdminController
         $currencies = Currency::select(array('published', 'id', 'code', 'name', 'symbol_left', 'symbol_right', 'description'));
 
         return Datatables::of($currencies)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/currencies/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/currencies/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/currencies/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/currencies/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }

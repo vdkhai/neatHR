@@ -35,16 +35,18 @@ class AdminEmployeeExperiencesController extends AdminController
      */
     public function getCreate($employee)
     {
-		// Title
-		$title = Lang::get('admin/employeeexperiences/title.employeeexperience_create');
+	    // Title
+	    $title = Lang::get('admin/employeeexperiences/title.employeeexperience_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/employeeexperiences/create_edit', compact('user', 'employee', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employeeexperiences/create_edit', compact('user', 'employee', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -58,29 +60,28 @@ class AdminEmployeeExperiencesController extends AdminController
 	    $validator = Validator::make(Input::all(), array('company_name' => 'required'));
 	    if ($validator->passes())
 	    {
+		    $result['failedValidate'] = false;
+
 		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
 		    $this->employeeexperience->fill(Input::all())->save();
 
 		    if( $this->employeeexperience->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employeeexperiences/' . $employee->id . '/edit/' . $this->employeeexperience->id)->with('success', Lang::get('admin/employeeexperiences/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employeeexperience->errors()->all();
-	            //return Redirect::to('admin/employeeexperiences/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeeexperiences/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeeexperiences/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employeeexperiences/' . $employee->id . '/create')->with('error', Lang::get('admin/employeeexperiences/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -92,22 +93,26 @@ class AdminEmployeeExperiencesController extends AdminController
      */
     public function getEdit($employee, $employeeexperience)
     {
-        if ($employeeexperience->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($employeeexperience->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/employeeexperiences/title.employeeexperience_update');
+		    // Title
+		    $title = Lang::get('admin/employeeexperiences/title.employeeexperience_update');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/employeeexperiences/create_edit', compact('employee', 'employeeexperience', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employeeexperiences/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeexperiences/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/employeeexperiences/create_edit',
+			    compact('employee', 'employeeexperience', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employeeexperiences/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeexperiences/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -120,22 +125,31 @@ class AdminEmployeeExperiencesController extends AdminController
     {
         // Validate the inputs
         $validator = Validator::make(Input::all(), array('company_name' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
 
-        if ($validator->passes())
-        {
-	        Input::merge(array('employee_id' => $employee->id));
+		    Input::merge(array('employee_id' => $employee->id));
 
-	        // Save if valid. Bind data from the form into model before save.
-	        $employeeexperience->fill(Input::all())->save();
+		    $employeeexperience->fill(Input::all())->save();
 
-			// Redirect to the new user page
-	        return Redirect::to('admin/employeeexperiences/' . $employee->id . '/edit/' . $employeeexperience->id)->with('success', Lang::get('admin/employeeexperiences/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employeeexperiences/' . $employee->id . '/edit/' . $employeeexperience->id)->with('error', Lang::get('admin/employeeexperiences/messages.edit.error'));
-        }
+		    if( $employeeexperience->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employeeexperiences/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employeeexperiences/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -146,32 +160,18 @@ class AdminEmployeeExperiencesController extends AdminController
      */
     public function getDelete($employee, $employeeexperience)
     {
-        // Title
-        $title = Lang::get('admin/employeeexperiences/title.employeeexperience_delete');
-
-        // Show the page
-        return View::make('admin/employeeexperiences/delete', compact('employee', 'employeeexperience', 'title'));
-    }
-
-    /**
-     * Remove the specified employeeexperience from storage.
-     *
-     * @param $employeeexperience
-     * @return Response
-     */
-    public function postDelete($employee, $employeeexperience)
-    {
 	    $employeeexperience->delete();
 
-        if (!empty($employeeexperience) )
-        {
-            return Redirect::to('admin/employeeexperiences/' . $employee->id . '/show')->with('success', Lang::get('admin/employeeexperiences/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employeeexperiences/' . $employee->id . '/show')->with('error', Lang::get('admin/employeeexperiences/messages.delete.error'));
-        }
+	    if (!empty($employeeexperience) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employeeexperiences/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employeeexperiences/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -201,8 +201,14 @@ class AdminEmployeeExperiencesController extends AdminController
         $employeeExperiences = EmployeeExperience::select(array('id', 'employee_id', 'published', 'start_date', 'note'))
                                ->where('employee_id', '=', $employee->id);
         return Datatables::of($employeeExperiences)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employeeexperiences/\' . $employee_id . \'/edit/\' . $id ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employeeexperiences/\' . $employee_id . \'/delete/\' . $id ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employeeexperiences/\' . $employee_id . \'/edit/\'. $id ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employeeexperiences/\' . $employee_id . \'/delete/\'. $id ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id', 'employee_id')
                 ->make();
     }

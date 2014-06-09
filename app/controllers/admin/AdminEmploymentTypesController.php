@@ -48,16 +48,18 @@ class AdminEmploymentTypesController extends AdminController
      */
     public function getCreate()
     {
-		// Title
-		$title = Lang::get('admin/employmenttypes/title.employmenttype_create');
+	    // Title
+	    $title = Lang::get('admin/employmenttypes/title.employmenttype_create');
 
 	    $user = $this->user->currentUser();
 
-		// Mode
-		$mode = 'create';
+	    // Mode
+	    $mode = 'create';
 
-		// Show the page
-		return View::make('admin/employmenttypes/create_edit', compact('user', 'title', 'mode'));
+	    // Show the page
+	    $view = View::make('admin/employmenttypes/create_edit', compact('user', 'title', 'mode'));
+
+	    return Response::make($view);
     }
 
     /**
@@ -67,35 +69,28 @@ class AdminEmploymentTypesController extends AdminController
      */
     public function postCreate()
     {
-	    // Validate the inputs
-	    $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
 	    if ($validator->passes())
 	    {
-	        $this->employmenttype->name = Input::get( 'name' );
-		    $this->employmenttype->description = Input::get( 'description' );
-	        $this->employmenttype->published = Input::get( 'published' );
+		    $result['failedValidate'] = false;
+		    $this->employmenttype->fill(Input::all())->save();
 
-	        // Save if valid.
-	        $this->employmenttype->save();
-
-	        if( $this->employmenttype->id )
-	        {
-	            // Redirect to the new contry page
-	            return Redirect::to('admin/employmenttypes/' . $this->employmenttype->id . '/edit')->with('success', Lang::get('admin/employmenttypes/messages.create.success'));
-	        }
-	        else
-	        {
-	            // Get validation errors (see Ardent package)
-	            //$error = $this->employmenttype->errors()->all();
-	            //return Redirect::to('admin/employmenttypes/create')
-	            //    ->withInput(Input::except('password'))
-	            //    ->with( 'error', $error );
-	        }
+		    if( $this->employmenttype->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employmenttypes/messages.create.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employmenttypes/messages.create.error'));
+			    return Response::json(json_encode($result));
+		    }
 	    }
 	    else
 	    {
-		    $error = $validator->messages();
-			return Redirect::to('admin/employmenttypes/create')->with('error', Lang::get('admin/employmenttypes/messages.create.error'));
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
 	    }
     }
 
@@ -107,22 +102,25 @@ class AdminEmploymentTypesController extends AdminController
      */
     public function getEdit($employmenttype)
     {
-        if ($employmenttype->id)
-        {
-	        $user = $this->user->currentUser();
+	    if ($employmenttype->id)
+	    {
+		    $user = $this->user->currentUser();
 
-            // Title
-        	$title = Lang::get('admin/employmenttypes/title.employmenttype_update');
+		    // Title
+		    $title = Lang::get('admin/employmenttypes/title.employmenttype_update');
 
-        	// Mode
-        	$mode = 'edit';
+		    // Mode
+		    $mode = 'edit';
 
-        	return View::make('admin/employmenttypes/create_edit', compact('employmenttype', 'user', 'title', 'mode'));
-        }
-        else
-        {
-            return Redirect::to('admin/employmenttypes')->with('error', Lang::get('admin/employmenttypes/messages.does_not_exist'));
-        }
+		    // Show the page
+		    $view = View::make('admin/employmenttypes/create_edit', compact('employmenttype', 'user', 'title', 'mode'));
+
+		    return Response::make($view);
+	    }
+	    else
+	    {
+		    return Redirect::to('admin/employmenttypes')->with('error', Lang::get('admin/employmenttypes/messages.does_not_exist'));
+	    }
     }
 
     /**
@@ -133,26 +131,29 @@ class AdminEmploymentTypesController extends AdminController
      */
     public function postEdit($employmenttype)
     {
-        // Validate the inputs
-        $validator = Validator::make(Input::all(), array('name' => 'required'));
+	    $validator = Validator::make(Input::all(), array('name' => 'required|min:3', 'description' => 'required'));
+	    if ($validator->passes())
+	    {
+		    $result['failedValidate'] = false;
+		    $employmenttype->fill(Input::all())->save();
 
-        if ($validator->passes())
-        {
-	        $employmenttype->name = Input::get( 'name' );
-	        $employmenttype->description = Input::get( 'description' );
-	        $employmenttype->published = Input::get( 'published' );
-
-            // Save if valid
-	        $employmenttype->save();
-
-	        // Redirect to the new user page
-	        return Redirect::to('admin/employmenttypes/' . $employmenttype->id . '/edit')->with('success', Lang::get('admin/employmenttypes/messages.edit.success'));
-        }
-        else
-        {
-	        $error = $validator->messages();
-            return Redirect::to('admin/employmenttypes/' . $employmenttype->id . '/edit')->with('error', Lang::get('admin/employmenttypes/messages.edit.error'));
-        }
+		    if( $employmenttype->id )
+		    {
+			    $result['messages'] = array('success' => Lang::get('admin/employmenttypes/messages.edit.success'));
+			    return Response::json(json_encode($result));
+		    }
+		    else
+		    {
+			    $result['messages'] = array('error' => Lang::get('admin/employmenttypes/messages.edit.error'));
+			    return Response::json(json_encode($result));
+		    }
+	    }
+	    else
+	    {
+		    $result['failedValidate'] = true;
+		    $result['messages'] = $validator->messages()->toJson();
+		    return Response::json(json_encode($result));
+	    }
     }
 
     /**
@@ -163,32 +164,18 @@ class AdminEmploymentTypesController extends AdminController
      */
     public function getDelete($employmenttype)
     {
-        // Title
-        $title = Lang::get('admin/employmenttypes/title.employmenttype_delete');
-
-        // Show the page
-        return View::make('admin/employmenttypes/delete', compact('employmenttype', 'title'));
-    }
-
-    /**
-     * Remove the specified employmenttype from storage.
-     *
-     * @param $employmenttype
-     * @return Response
-     */
-    public function postDelete($employmenttype)
-    {
 	    $employmenttype->delete();
 
-        if (!empty($employmenttype) )
-        {
-            return Redirect::to('admin/employmenttypes')->with('success', Lang::get('admin/employmenttypes/messages.delete.success'));
-        }
-        else
-        {
-            // There was a problem deleting the user
-            return Redirect::to('admin/employmenttypes')->with('error', Lang::get('admin/employmenttypes/messages.delete.error'));
-        }
+	    if (!empty($employmenttype) )
+	    {
+		    $result['messages'] = array('success' => Lang::get('admin/employmenttypes/messages.delete.success'));
+		    return Response::json(json_encode($result));
+	    }
+	    else
+	    {
+		    $result['messages'] = array('error' => Lang::get('admin/employmenttypes/messages.delete.error'));
+		    return Response::json(json_encode($result));
+	    }
     }
 
 	/**
@@ -212,8 +199,14 @@ class AdminEmploymentTypesController extends AdminController
         $employmenttypes = EmploymentType::select(array('published', 'id', 'name', 'description'));
 
         return Datatables::of($employmenttypes)
-                ->add_column('actions', '<a href="{{{ URL::to(\'admin/employmenttypes/\' . $id . \'/edit\' ) }}}" class="iframe btn btn-xs btn-info"><span class="glyphicon glyphicon-edit"></span></a>
-										<a href="{{{ URL::to(\'admin/employmenttypes/\' . $id . \'/delete\' ) }}}" class="iframe btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></a>')
+		        ->add_column('actions', '<div class="btn-group">
+											<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">{{{ Lang::get(\'general.action\') }}} <span class="caret"></span></button>
+											<ul class="dropdown-menu" role="menu">
+												<li><a href="#" onclick="getEdit(\'{{{ URL::to(\'admin/employmenttypes/\' . $id . \'/edit\' ) }}}\');">{{{ Lang::get(\'button.edit\') }}}</a></li>
+												<li><a href="#" onclick="getDelete(\'{{{ URL::to(\'admin/employmenttypes/\' . $id . \'/delete\' ) }}}\');">{{{ Lang::get(\'button.delete\') }}}</a></li>
+											</ul>
+										</div>'
+		                    )
                 ->remove_column('id')
                 ->make();
     }
